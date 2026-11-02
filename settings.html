@@ -1,0 +1,1939 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Webclock — minimal settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, "Segoe UI", Arial, sans-serif;
+        background: #10191a;
+        color: #f3f5ef;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 1.5rem clamp(1rem, 5vw, 4rem) 4rem;
+        min-height: 100vh;
+        background: linear-gradient(160deg, #10191a 0%, #15262a 55%, #1a2b27 100%) fixed;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      header {
+        position: fixed;
+        inset: 1rem 1.25rem auto auto;
+        z-index: 10;
+      }
+      header a {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        border-radius: 0.5rem;
+        background: rgba(16, 25, 26, 0.85);
+        backdrop-filter: blur(6px);
+      }
+      h1 {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      h2 {
+        font-size: 1.15rem;
+        font-weight: 500;
+        margin: 0 0 1.25rem;
+      }
+      main {
+        min-width: 0;
+        max-width: 62rem;
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 15rem minmax(0, 1fr);
+        gap: 2.5rem;
+        max-width: 79.5rem;
+        margin: 0.5rem 0 0;
+      }
+      .toc {
+        position: sticky;
+        top: 1rem;
+        align-self: start;
+        padding: 1rem;
+        border: 1px solid rgba(142, 170, 164, 0.35);
+        border-radius: 0.75rem;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+      }
+      .toc h2 {
+        font-size: 0.8rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 0 0 0.75rem;
+        color: #bed0ca;
+      }
+      .toc ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.15rem;
+      }
+      .toc a {
+        display: block;
+        padding: 0.5rem 0.65rem;
+        border-radius: 0.5rem;
+        color: #f3f5ef;
+        text-decoration: none;
+      }
+      .toc a:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .toc a[aria-current="true"] {
+        background: rgba(228, 212, 148, 0.16);
+        color: #e4d494;
+      }
+      .toc small {
+        display: block;
+        color: #bed0ca;
+        line-height: 1.3;
+      }
+      .toc {
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+      .profiles {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(142, 170, 164, 0.35);
+      }
+      .profiles label,
+      .profiles h3 {
+        display: block;
+        margin: 0.25rem 0;
+        color: #bed0ca;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+      .profiles input[type="text"] {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.4rem 0.6rem;
+      }
+      .profiles button {
+        box-sizing: border-box;
+        min-height: 2.5rem;
+        border: 1px solid #e4d494;
+        border-radius: 0.5rem;
+        background: rgba(228, 212, 148, 0.16);
+        color: #e4d494;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .profiles button:hover {
+        background: rgba(228, 212, 148, 0.3);
+      }
+      #design-save {
+        width: 100%;
+        margin: 0.5rem 0 1rem;
+      }
+      #design-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      #design-list li {
+        display: flex;
+        gap: 0.35rem;
+        margin: 0.35rem 0;
+      }
+      #design-list .design-load {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        padding: 0.3rem 0.6rem;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      #design-list .design-delete {
+        width: 2.5rem;
+      }
+      #design-empty {
+        margin: 0.25rem 0;
+        color: #bed0ca;
+        font-size: 0.8rem;
+      }
+      @media (max-width: 860px) {
+        body {
+          padding-top: 3.5rem;
+        }
+        .toc {
+          top: 3.5rem;
+        }
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 1rem;
+        }
+        .toc {
+          z-index: 5;
+          padding: 0.5rem;
+          background: #15262a;
+          max-height: 75vh;
+        }
+        .toc h2,
+        .toc small {
+          display: none;
+        }
+        .toc ul {
+          display: flex;
+          overflow-x: auto;
+          gap: 0.25rem;
+        }
+        .toc a {
+          white-space: nowrap;
+        }
+      }
+      .section-intro {
+        margin: -0.5rem 0 1rem;
+        color: #bed0ca;
+        line-height: 1.5;
+      }
+      .setting-help {
+        display: block;
+        margin: -0.5rem 0 1rem;
+        line-height: 1.45;
+      }
+      .contrast-note {
+        margin: 0.25rem 0 1rem;
+      }
+      .contrast-note[data-low] {
+        color: #ffb9a8;
+      }
+      .gradient-preview {
+        height: 3rem;
+        max-width: 26rem;
+        border: 1px solid #8eaaa4;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .intro,
+      small {
+        color: #bed0ca;
+      }
+      .columns {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.5rem;
+      }
+      section {
+        border: 1px solid rgba(142, 170, 164, 0.35);
+        border-radius: 0.75rem;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+        padding: 1.5rem;
+        scroll-margin-top: 5rem;
+      }
+      label {
+        display: block;
+        margin: 1rem 0;
+        line-height: 1.5;
+      }
+      .choice {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.75rem;
+      }
+      input[type="checkbox"] {
+        width: 1.15rem;
+        height: 1.15rem;
+      }
+      input:not([type="checkbox"]):not([type="color"]):not([type="file"]),
+      select {
+        display: block;
+        width: 100%;
+        max-width: 26rem;
+        background: #182727;
+        color: inherit;
+        border: 1px solid #8eaaa4;
+        border-radius: 0;
+        padding: 0.6rem;
+        font: inherit;
+      }
+      input[type="color"] {
+        display: block;
+        min-height: 2.75rem;
+      }
+      input[type="range"] {
+        width: min(100%, 26rem);
+      }
+      input[type="file"] {
+        display: block;
+        max-width: 100%;
+      }
+      a {
+        color: #e4d494;
+      }
+      a:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #e4d494;
+        outline-offset: 3px;
+      }
+      fieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+      }
+      .component-row {
+        display: grid;
+        grid-template-columns: minmax(8rem, 1fr) auto auto auto;
+        align-items: center;
+        gap: 0.5rem 1rem;
+        padding: 0.35rem 0;
+        border-top: 1px solid rgba(142, 170, 164, 0.2);
+      }
+      .component-row .choice {
+        margin: 0;
+      }
+      .component-row input[type="color"] {
+        width: 3.5rem;
+        padding: 0;
+      }
+      @media (max-width: 550px) {
+        .component-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .component-name {
+          grid-column: 1 / -1;
+        }
+      }
+      legend {
+        padding: 0;
+        margin-bottom: 0.25rem;
+      }
+      .note-slot {
+        display: grid;
+        gap: 0.35rem 1rem;
+        padding: 0.6rem 0;
+        border-top: 1px solid rgba(142, 170, 164, 0.2);
+      }
+      .note-days {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+      }
+      #status {
+        margin: 0 0 1rem;
+      }
+      #status:empty {
+        display: none;
+      }
+      #status[data-error] {
+        color: #ffb9a8;
+      }
+      :root[data-retro-theme="true"] {
+        font-family: "Press Start 2P", monospace;
+        font-size: 11px;
+      }
+      :root[data-retro-theme="true"] h1 {
+        font-size: 13px;
+        letter-spacing: 2px;
+      }
+      :root[data-retro-theme="true"] h2 {
+        font-size: 10px;
+        color: #4fc3f7;
+        letter-spacing: 1px;
+      }
+      :root[data-retro-theme="true"] label {
+        font-size: 9px;
+        line-height: 1.6;
+      }
+      :root[data-retro-theme="true"] .intro,
+      :root[data-retro-theme="true"] small {
+        font-size: 8px;
+        line-height: 1.6;
+        color: #bed0ca;
+      }
+      :root[data-retro-theme="true"] input:not([type="checkbox"]):not([type="color"]):not([type="file"]),
+      :root[data-retro-theme="true"] select {
+        font-family: "Press Start 2P", monospace;
+        font-size: 9px;
+        background: #141414;
+        border: 2px solid #333;
+        padding: 8px;
+      }
+      :root[data-retro-theme="true"] input:not([type="checkbox"]):not([type="color"]):not([type="file"]):focus,
+      :root[data-retro-theme="true"] select:focus {
+        border-color: #4fc3f7;
+      }
+      :root[data-retro-theme="true"] a {
+        font-family: "Press Start 2P", monospace;
+        font-size: 9px;
+        color: #4fc3f7;
+      }
+      :root[data-retro-theme="true"] output {
+        color: #4fc3f7;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Minimal clock / settings</h1>
+      <a href="index.html" target="minimal-display">Open display ↗</a>
+    </header>
+    <div class="shell">
+    <nav class="toc" id="toc" aria-label="Settings sections">
+      <h2>Contents</h2>
+      <ul>
+        <li><a href="#sec-clock">Clock<small>Time, size, font, position</small></a></li>
+        <li><a href="#sec-gregorian">Gregorian date<small>Date line and work week</small></a></li>
+        <li><a href="#sec-hebrew">Hebrew date<small>Hebrew date line and size</small></a></li>
+        <li><a href="#sec-sun">Next sun event<small>Sunrise/sunset time and icon</small></a></li>
+        <li><a href="#sec-place">Place &amp; Jewish calendar<small>City, holidays, Torah portion</small></a></li>
+        <li><a href="#sec-screen">Screen &amp; controls<small>Fit to display, icons, shortcuts</small></a></li>
+        <li><a href="#sec-appearance">Appearance<small>Colors, gradient, background</small></a></li>
+        <li><a href="#sec-lines">Notes<small>Notes for chosen days</small></a></li>
+      </ul>
+      <div class="profiles">
+        <label for="design-name">Name for save</label>
+        <input id="design-name" type="text" maxlength="30" autocomplete="off" />
+        <button type="button" id="design-save">Save setting</button>
+        <h3 id="design-heading">Load setting</h3>
+        <ul id="design-list" aria-labelledby="design-heading"></ul>
+        <p id="design-empty" hidden>No saved settings yet.</p>
+      </div>
+    </nav>
+    <main>
+      <p id="status" role="status" aria-live="polite"></p>
+      <form id="settings" class="columns" novalidate>
+        <section id="sec-clock" aria-labelledby="h-clock">
+          <h2 id="h-clock">Clock</h2>
+          <p class="section-intro">How the time itself looks and where it sits.</p>
+          <label class="choice"
+            ><input name="is12Hour" type="checkbox" /> Use 12-hour time</label
+          >
+          <label class="choice"
+            ><input name="showSeconds" type="checkbox" /> Show seconds</label
+          >
+          <label class="choice"
+            ><input name="blinkColon" type="checkbox" /> Blink the clock dots
+            (colon) every second</label
+          >
+          <label
+            >Clock size <output id="scale-value"></output>
+            <input name="scale" type="range" min="0.5" max="2" step="0.05" />
+          </label>
+          <label class="choice"
+            ><input name="centerClock" type="checkbox" /> Center the clock in
+            the middle of the screen</label
+          >
+          <label
+            >Gap from the top of the screen
+            <output id="topGap-value"></output>
+            <input name="topGap" type="range" min="0" max="600" step="10" />
+          </label>
+          <small
+            >The Gregorian and Hebrew date lines stay attached to the clock and
+            move with it. The top gap is ignored while the clock is
+            centered or fitting to screen.</small
+          >
+          <label
+            >Clock font
+            <select name="clockFont">
+              <option value="calibri">
+                Calibri (offline Carlito fallback)
+              </option>
+              <option value="retro">Retro digital (seven-segment)</option>
+              <option value="arcade">Retro arcade (Press Start 2P)</option>
+              <option value="system">System (clean)</option>
+              <option value="serif">Serif (classic)</option>
+              <option value="mono">Monospace (digital)</option>
+              <option value="sans">Sans-serif (simple)</option>
+            </select>
+          </label>
+        </section>
+        <section id="sec-gregorian" aria-labelledby="h-gregorian">
+          <h2 id="h-gregorian">Gregorian date</h2>
+          <p class="section-intro">The everyday date line shown under the clock.</p>
+          <label class="choice"
+            ><input name="showDate" type="checkbox" /> Show Gregorian
+            date</label
+          >
+          <label
+            >Gregorian date size <output id="dateScale-value"></output>
+            <input name="dateScale" type="range" min="0.5" max="2" step="0.05" />
+          </label>
+          <label
+            >Gap between clock and Gregorian date
+            <output id="dateGap-value"></output>
+            <input name="dateGap" type="range" min="-40" max="120" step="2" />
+          </label>
+          <label
+            >Gregorian date font
+            <select name="dateFont">
+              <option value="inherit">Same as clock</option>
+              <option value="arcade">Retro arcade (Press Start 2P)</option>
+              <option value="calibri">Calibri (offline Carlito fallback)</option>
+              <option value="system">System (clean)</option>
+              <option value="serif">Serif (classic)</option>
+              <option value="mono">Monospace (digital)</option>
+              <option value="sans">Sans-serif (simple)</option>
+            </select>
+          </label>
+          <label
+            >Gregorian date pattern
+            <input
+              name="dateFormat"
+              type="text"
+              maxlength="160"
+              spellcheck="false"
+              aria-describedby="pattern-help"
+            />
+          </label>
+          <small id="pattern-help"
+            >Tokens: D DD M MM MMM MMMM YY YYYY ddd dddd W WW H HH h hh m mm s
+            ss A. This is a safe pattern, not an Excel formula. Add 'WW' WW to
+            put work week on the same date line. Quote literal words.</small
+          >
+          <label
+            >Example date formats
+            <select id="date-example">
+              <option value="">Choose an example (optional)</option>
+              <option value="dddd, D MMMM YYYY 'WW' WW">
+                Day, date and week on one line
+              </option>
+              <option value="DD/MM/YYYY">Day/month/year</option>
+              <option value="YYYY-MM-DD">ISO date</option>
+            </select>
+          </label>
+          <label class="choice"
+            ><input name="showWeek" type="checkbox" /> Show work week</label
+          >
+          <label
+            >Work-week number style
+            <select name="weekFormat">
+              <option value="W">W — no leading zero</option>
+              <option value="WW">WW — leading zero</option>
+            </select>
+          </label>
+          <label
+            >Work week starts on
+            <select name="weekStartsOn">
+              <option value="sunday">Sunday (Israel)</option>
+              <option value="monday">Monday (ISO 8601)</option>
+            </select>
+          </label>
+          <small
+            >Sunday weeks use the Israeli work-week count: the week that starts
+            on Sunday gets the number of the ISO week that starts the next day
+            (Sunday 1 Nov 2026 is week 45; ISO says 44). Both the week line and
+            W/WW date tokens use this rule.</small
+          >
+        </section>
+        <section id="sec-hebrew" aria-labelledby="h-hebrew">
+          <h2 id="h-hebrew">Hebrew date</h2>
+          <p class="section-intro">
+            The Hebrew date line.
+          </p>
+          <label class="choice"
+            ><input name="showHebrew" type="checkbox" /> Show Hebrew date</label
+          >
+          <label
+            >Hebrew date size <output id="hebrewScale-value"></output>
+            <input
+              name="hebrewScale"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.05"
+            />
+          </label>
+          <label
+            >Gap between Gregorian date and Hebrew date
+            <output id="hebrewGap-value"></output>
+            <input name="hebrewGap" type="range" min="-40" max="120" step="2" />
+          </label>
+          <label
+            >Hebrew date font
+            <select name="hebrewFont">
+              <option value="inherit">Same as clock</option>
+              <option value="arcade">Retro arcade (Press Start 2P)</option>
+              <option value="calibri">Calibri (offline Carlito fallback)</option>
+              <option value="system">System (clean)</option>
+              <option value="serif">Serif (classic)</option>
+              <option value="mono">Monospace (digital)</option>
+              <option value="sans">Sans-serif (simple)</option>
+            </select>
+          </label>
+          <label
+            >Hebrew date pattern
+            <input
+              name="hebrewDateFormat"
+              type="text"
+              maxlength="160"
+              spellcheck="false"
+              aria-describedby="hebrew-pattern-help"
+            />
+          </label>
+          <small id="hebrew-pattern-help"
+            >Tokens: HW weekday (יום ראשון), HD day letters (כ״א), HDD day number,
+            HM month, HB month with ב (בחשון), HYY year letters (תשפ״ז), HYYYY
+            year number. Quote literal words.</small
+          >
+          <label
+            >Example Hebrew date formats
+            <select id="hebrew-date-example">
+              <option value="">Choose an example (optional)</option>
+              <option value="HW - HD HB">Weekday - day in month</option>
+              <option value="HD HB HYY">Day, month and year</option>
+              <option value="HDD HM HYYYY">Numeric day and year</option>
+              <option value="HD HM">Day and month</option>
+            </select>
+          </label>
+        </section>
+        <section id="sec-sun" aria-labelledby="h-sun">
+          <h2 id="h-sun">Next sun event</h2>
+          <p class="section-intro">
+            The next sunrise or sunset time, shown right after the Hebrew date.
+          </p>
+          <label class="choice"
+            ><input name="showSun" type="checkbox" /> Show next sunrise or
+            sunset (always shown right after the Hebrew date)</label
+          >
+          <label
+            >Position of the sun event
+            <select name="sunSide">
+              <option value="right">Right of the Hebrew date</option>
+              <option value="left">Left of the Hebrew date</option>
+            </select>
+          </label>
+          <label
+            >Space between the Hebrew date and the sun event
+            <output id="sunGap-value"></output>
+            <input name="sunGap" type="range" min="0" max="120" step="2" />
+          </label>
+          <label
+            >Next sun event icon
+            <select name="sunIcon">
+              <option value="emoji">Sunrise/sunset icon (🌅 🌇)</option>
+              <option value="scene">Sun over horizon (🌄 sunrise, 🌅 sunset)</option>
+              <option value="custom">My logo/icon</option>
+              <option value="none">No icon</option>
+            </select>
+          </label>
+          <label
+            >Icon / logo position
+            <select name="sunIconSide">
+              <option value="right">Right of the time</option>
+              <option value="left">Left of the time</option>
+            </select>
+          </label>
+          <label
+            >Icon / logo size <output id="sunIconScale-value"></output>
+            <input
+              name="sunIconScale"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.05"
+            />
+          </label>
+          <label class="choice"
+            ><input name="sunIconMono" type="checkbox" /> Draw the icon as a
+            font glyph in the item's color</label
+          >
+          <label
+            >Choose a logo/icon (PNG, JPEG, WebP or GIF; up to 120 KB)
+            <input
+              id="sun-picture"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+            />
+          </label>
+          <button id="remove-sun-picture" type="button">
+            Remove sun icon image
+          </button>
+          <fieldset class="component-styles" id="component-styles-sun">
+            <legend>Color and bold for the next sun event</legend>
+          </fieldset>
+        </section>
+        <section id="sec-place" aria-labelledby="h-place">
+          <h2 id="h-place">Place &amp; Jewish calendar</h2>
+          <p class="section-intro">
+            Location drives the time zone, holidays, Shabbat times and sun events.
+          </p>
+          <label
+            >City
+            <select name="city">
+              <option value="jerusalem">Jerusalem</option>
+              <option value="haifa">Haifa</option>
+              <option value="tel-aviv">Tel Aviv</option>
+              <option value="kiryat-gat">Kiryat Gat</option>
+              <option value="beersheba">Beersheba</option>
+              <option value="new-york">New York</option>
+              <option value="london">London</option>
+              <option value="paris">Paris</option>
+              <option value="tokyo">Tokyo</option>
+              <option value="sydney">Sydney</option>
+            </select>
+          </label>
+          <label
+            >IANA time zone
+            <input
+              name="timeZone"
+              type="text"
+              maxlength="64"
+              spellcheck="false"
+              placeholder="Asia/Jerusalem"
+            />
+          </label>
+          <small
+            >Changing city sets its time zone and Israel/Diaspora calendar
+            region. A custom time zone changes the displayed time, not the
+            city's coordinates.</small
+          >
+          <label
+            >Calendar region
+            <select name="region">
+              <option value="israel">Israel</option>
+              <option value="diaspora">Diaspora</option>
+            </select>
+          </label>
+          <small
+            >Hebrew dates, holidays, solar events and the Torah portion are
+            displayed in Hebrew.</small
+          >
+          <label
+            >Jewish information size <output id="jewishScale-value"></output>
+            <input
+              name="jewishScale"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.05"
+            />
+          </label>
+          <label
+            >Jewish information font (Torah portion, Shabbat times, holiday)
+            <select name="jewishFont">
+              <option value="inherit">Same as clock</option>
+              <option value="arcade">Retro arcade (Press Start 2P)</option>
+              <option value="calibri">Calibri (offline Carlito fallback)</option>
+              <option value="system">System (clean)</option>
+              <option value="serif">Serif (classic)</option>
+              <option value="mono">Monospace (digital)</option>
+              <option value="sans">Sans-serif (simple)</option>
+            </select>
+          </label>
+          <label
+            >Torah portion format
+            <select name="parashahFormat">
+              <option value="prefix">With “פרשת” (פרשת נח)</option>
+              <option value="name">Name only (נח)</option>
+              <option value="custom">Custom (edit the text below)</option>
+            </select>
+          </label>
+          <label
+            >Custom Torah portion text
+            <input
+              name="parashahPattern"
+              type="text"
+              maxlength="80"
+              dir="auto"
+              spellcheck="false"
+            />
+          </label>
+          <small class="setting-help"
+            >Use {name} where the portion name should appear. Used when the
+            format above is Custom.</small
+          >
+          <label
+            >Shabbat times format
+            <select name="shabbatFormat">
+              <option value="he">Hebrew labels (כניסה 16:50 יציאה 17:50)</option>
+              <option value="en">English labels (Candles 16:50 · Havdalah 17:50)</option>
+              <option value="times">Times only (16:50 – 17:50)</option>
+              <option value="custom">Custom (edit the text below)</option>
+            </select>
+          </label>
+          <label
+            >Custom Shabbat times text
+            <input
+              name="shabbatPattern"
+              type="text"
+              maxlength="80"
+              dir="auto"
+              spellcheck="false"
+            />
+          </label>
+          <small class="setting-help"
+            >Use {in} for candle-lighting time and {out} for Shabbat end. Used
+            when the format above is Custom.</small
+          >
+          <label class="choice"
+            ><input name="showHoliday" type="checkbox" /> Show Jewish
+            holiday</label
+          >
+          <label class="choice"
+            ><input name="showParashah" type="checkbox" /> Show weekly Torah
+            portion</label
+          >
+          <fieldset>
+            <legend>Show the Torah portion on these days</legend>
+            <label class="choice"
+              ><input name="parashahSun" type="checkbox" /> Sunday</label
+            >
+            <label class="choice"
+              ><input name="parashahMon" type="checkbox" /> Monday</label
+            >
+            <label class="choice"
+              ><input name="parashahTue" type="checkbox" /> Tuesday</label
+            >
+            <label class="choice"
+              ><input name="parashahWed" type="checkbox" /> Wednesday</label
+            >
+            <label class="choice"
+              ><input name="parashahThu" type="checkbox" /> Thursday</label
+            >
+            <label class="choice"
+              ><input name="parashahFri" type="checkbox" /> Friday</label
+            >
+            <label class="choice"
+              ><input name="parashahSat" type="checkbox" /> Saturday
+              (Shabbat)</label
+            >
+          </fieldset>
+          <small
+            >Days follow the selected city's time zone. A Jewish holiday still
+            appears on its own day.</small
+          >
+          <fieldset class="component-styles" id="component-styles-jewish">
+            <legend>Color and bold for Jewish calendar items</legend>
+            <small class="setting-help"
+              >Tick “Own color” to give an item its own color instead of the
+              general text color. Choosing a color ticks it for you. “Bold”
+              makes that item heavier.</small
+            >
+          </fieldset>
+        </section>
+
+        <section id="sec-screen" aria-labelledby="h-screen">
+          <h2 id="h-screen">Screen &amp; controls</h2>
+          <p class="section-intro">
+            Make the display fit any screen and choose how it can be controlled.
+          </p>
+          <label class="choice"
+            ><input name="fitScreen" type="checkbox" /> Auto-fit the clock to
+            the screen</label
+          >
+          <label
+            >Screen margin (safe area padding)
+            <output id="screenPadding-value"></output>
+            <input name="screenPadding" type="range" min="0" max="60" step="2" />
+          </label>
+          <label
+            >Action icons (Settings, Fullscreen)
+            <select name="navMode">
+              <option value="mouse">
+                Hide when the mouse is idle or outside (show on mouse move)
+              </option>
+              <option value="auto">
+                Visible; in fullscreen only when the mouse moves
+              </option>
+              <option value="always">Always visible</option>
+              <option value="hidden">Never show the icons</option>
+            </select>
+          </label>
+        </section>
+        <section id="sec-appearance" aria-labelledby="h-appearance">
+          <h2 id="h-appearance">Appearance</h2>
+          <p class="section-intro">
+            Colors, background and the finishing touches on the display.
+          </p>
+          <label
+            >Text shadow
+            <select name="textShadow">
+              <option value="none">None</option>
+              <option value="retro">Retro pixel outline (retrofont style)</option>
+              <option value="soft">Soft</option>
+              <option value="depth">3D depth</option>
+              <option value="extrude">3D extruded</option>
+              <option value="strong">Strong drop shadow</option>
+              <option value="light">Light shadow (for dark backgrounds)</option>
+              <option value="hard">Hard offset</option>
+              <option value="outline">Thin dark outline</option>
+              <option value="long">Long diagonal shadow</option>
+              <option value="emboss">Emboss</option>
+              <option value="glow">Glow (text color)</option>
+              <option value="neon">Neon glow (text color)</option>
+            </select>
+          </label>
+          <fieldset class="shadow-targets" id="shadow-targets">
+            <legend>Apply text shadow to</legend>
+            <label class="choice"
+              ><input id="shadow-all" type="checkbox" /> All</label
+            >
+          </fieldset>
+          <label class="choice"
+            ><input name="retroSettingsTheme" type="checkbox" /> Style settings
+            page with retro arcade font</label
+          >
+          <label
+            >Small motion
+            <select name="motion">
+              <option value="none">None</option>
+              <option value="float">Gentle float</option>
+              <option value="sway">3D sway</option>
+              <option value="pulse">Soft pulse (breathing)</option>
+              <option value="orbit">Slow circle</option>
+              <option value="tilt">Gentle tilt</option>
+            </select>
+          </label>
+          <small
+            >Motion moves the clock together with the Gregorian and Hebrew
+            dates.</small
+          >
+          <label class="choice"
+            ><input name="slowDrift" type="checkbox" /> Move clock very
+            slowly</label
+          >
+          <small
+            >Slow drift and small motion stop automatically when reduced
+            motion is enabled.</small
+          >
+          <fieldset class="panel-options" id="panel-options">
+            <legend>Soft gradient panels</legend>
+            <label class="choice"
+              ><input id="panels-all" type="checkbox" /> All</label
+            >
+            <label class="choice"
+              ><input name="panelGregorian" type="checkbox" /> Gregorian
+              date</label
+            >
+            <label class="choice"
+              ><input name="panelHebrew" type="checkbox" /> Hebrew date</label
+            >
+            <label class="choice"
+              ><input name="panelSun" type="checkbox" /> Sunrise /
+              sunset</label
+            >
+            <label class="choice"
+              ><input name="panelWeek" type="checkbox" /> Work week</label
+            >
+            <label class="choice"
+              ><input name="panelParashah" type="checkbox" /> Torah portion
+              and holiday</label
+            >
+            <label
+              >Panel opacity <output id="panelOpacity-value"></output>
+              <input
+                name="panelOpacity"
+                type="range"
+                min="5"
+                max="100"
+                step="5"
+              />
+            </label>
+            <small class="setting-help"
+              >Draws a subtle gradient behind the selected items. Leave every
+              box unticked for no panels. Lower the opacity to make them more
+              transparent. The panel color follows the text color.</small
+            >
+          </fieldset>
+          <fieldset class="component-styles" id="component-styles">
+            <legend>Color and bold for clock and dates</legend>
+            <small class="setting-help"
+              >Tick “Own color” to give an item its own color instead of the
+              general text color. Choosing a color ticks it for you. “Bold”
+              makes that item heavier.</small
+            >
+          </fieldset>
+          <label>Background color <input name="bgColor" type="color" /></label>
+          <label>Text color <input name="fontColor" type="color" /></label>
+          <label class="choice"
+            ><input name="gradientEnabled" type="checkbox" /> Use a background
+            gradient</label
+          >
+          <label>Gradient start color <input name="gradientStart" type="color" /></label>
+          <label>Gradient end color <input name="gradientEnd" type="color" /></label>
+          <label
+            >Gradient angle <output id="gradientAngle-value"></output>
+            <input name="gradientAngle" type="range" min="0" max="360" step="5" />
+          </label>
+          <div class="gradient-preview" id="gradient-preview" aria-hidden="true"></div>
+          <p class="contrast-note" id="contrast-note"></p>
+          <label
+            >Local background path (PNG, JPEG, WebP or GIF)
+            <input name="bgImage" type="text" placeholder="images/wall.jpg" />
+          </label>
+          <label
+            >Or choose a picture (up to 750 KB; stored in browser settings)
+            <input
+              id="picture"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+            />
+          </label>
+          <button id="remove-picture" type="button">
+            Remove background picture
+          </button>
+          <small
+            >Remote links are not supported. Browser-stored images and settings
+            do not travel with copied HTML files.</small
+          >
+        </section>
+        <section id="sec-lines" aria-labelledby="h-lines">
+          <h2 id="h-lines">Notes</h2>
+          <p class="section-intro">
+            Write short notes and tick the days each one appears on, for
+            example a reminder before Shabbat. A note can also replace the
+            Place &amp; Jewish calendar information (Torah portion, Shabbat
+            times and holiday) on its days. Leave a note's text empty to turn
+            it off.
+          </p>
+          <div id="note-slots"></div>
+          <small class="setting-help"
+            >Up to 120 characters per note. Days follow the selected city's
+            time zone. Style the notes under Appearance (“Note”).</small
+          >
+        </section>
+      </form>
+    </main>
+    </div>
+    <script>
+      (() => {
+        "use strict";
+        const KEY = "webclockMinimalConfig";
+        const cities = {
+          jerusalem: ["Asia/Jerusalem", "israel"],
+          haifa: ["Asia/Jerusalem", "israel"],
+          "tel-aviv": ["Asia/Jerusalem", "israel"],
+          "kiryat-gat": ["Asia/Jerusalem", "israel"],
+          beersheba: ["Asia/Jerusalem", "israel"],
+          "new-york": ["America/New_York", "diaspora"],
+          london: ["Europe/London", "diaspora"],
+          paris: ["Europe/Paris", "diaspora"],
+          tokyo: ["Asia/Tokyo", "diaspora"],
+          sydney: ["Australia/Sydney", "diaspora"],
+        };
+        const defaults = {
+          version: 1,
+          is12Hour: false,
+          showSeconds: true,
+          blinkColon: false,
+          jewishScale: 1,
+          sunIconScale: 1,
+          showDate: true,
+          dateFormat: "DD/MM/YYYY ddd '|' W",
+          position: "center",
+          scale: 1,
+          bgColor: "#ffffff",
+          fontColor: "#101010",
+          bgImage: "",
+          city: "jerusalem",
+          timeZone: "Asia/Jerusalem",
+          region: "israel",
+          hebrewLanguage: "both",
+          showHebrew: true,
+          showSun: true,
+          showHoliday: true,
+          showParashah: true,
+          showWeek: false,
+          weekFormat: "W",
+          weekStartsOn: "sunday",
+          sunIcon: "emoji",
+          sunIconSide: "right",
+          sunSide: "right",
+          parashahFormat: "prefix",
+          shabbatFormat: "he",
+          parashahPattern: "פרשת {name}",
+          shabbatPattern: "כניסה {in} יציאה {out}",
+          sunIconMono: false,
+          sunLogo: "",
+          clockFont: "calibri",
+          dateFont: "inherit",
+          hebrewFont: "inherit",
+          jewishFont: "inherit",
+          retroSettingsTheme: false,
+          navMode: "auto",
+          clockFace: "full",
+          slowDrift: false,
+          textShadow: "none",
+          motion: "none",
+          hebrewDateFormat: "HW - HD HB",
+          layoutRevision: 2,
+          parashahSun: true,
+          parashahMon: true,
+          parashahTue: true,
+          parashahWed: true,
+          parashahThu: true,
+          parashahFri: true,
+          parashahSat: true,
+          dateScale: 1,
+          hebrewScale: 1,
+          dateGap: 0,
+          hebrewGap: 0,
+          sunGap: 20,
+          topGap: 0,
+          centerClock: false,
+          fitScreen: false,
+          screenPadding: 16,
+          gradientEnabled: false,
+          gradientStart: "#fdfbfb",
+          gradientEnd: "#d7e3f4",
+          gradientAngle: 135,
+          panelGregorian: false,
+          panelHebrew: false,
+          panelSun: false,
+          panelWeek: false,
+          panelParashah: false,
+          panelOpacity: 40,
+        };
+        const form = document.getElementById("settings");
+        const styledComponents = [
+          ["time", "Clock time"],
+          ["date", "Gregorian date"],
+          ["hebrew", "Hebrew date"],
+          ["sun", "Sunrise / sunset"],
+          ["week", "Work week"],
+          ["parashah", "Torah portion"],
+          ["shabbat", "Shabbat times"],
+          ["holiday", "Holiday"],
+          ["note", "Day note"],
+        ];
+        const noteSlots = [1, 2];
+        const noteDays = [
+          ["Sun", "Sunday"],
+          ["Mon", "Monday"],
+          ["Tue", "Tuesday"],
+          ["Wed", "Wednesday"],
+          ["Thu", "Thursday"],
+          ["Fri", "Friday"],
+          ["Sat", "Saturday (Shabbat)"],
+        ];
+        const noteHost = document.getElementById("note-slots");
+        for (const slot of noteSlots) {
+          Object.assign(defaults, { [`note${slot}Text`]: "", [`note${slot}Hide`]: false });
+          const box = document.createElement("fieldset");
+          box.className = "note-slot";
+          const legend = document.createElement("legend");
+          legend.textContent = `Note ${slot}`;
+          const text = document.createElement("input");
+          text.name = `note${slot}Text`;
+          text.type = "text";
+          text.maxLength = 120;
+          text.dir = "auto";
+          text.setAttribute("aria-label", `Note ${slot} text`);
+          if (slot === 1) text.placeholder = "e.g. Shabbat shalom";
+          const days = document.createElement("div");
+          days.className = "note-days";
+          const makeChoice = (name, labelText) => {
+            const input = document.createElement("input");
+            input.name = name;
+            input.type = "checkbox";
+            const label = document.createElement("label");
+            label.className = "choice";
+            label.append(input, ` ${labelText}`);
+            return label;
+          };
+          for (const [key, dayLabel] of noteDays) {
+            defaults[`note${slot}${key}`] = false;
+            days.append(makeChoice(`note${slot}${key}`, dayLabel));
+          }
+          box.append(
+            legend,
+            text,
+            days,
+            makeChoice(
+              `note${slot}Hide`,
+              "Replace the Place & Jewish calendar information on these days",
+            ),
+          );
+          noteHost.append(box);
+        }
+        const componentStyleHost = document.getElementById("component-styles");
+        const jewishStyleHost = document.getElementById("component-styles-jewish");
+        const sunStyleHost = document.getElementById("component-styles-sun");
+        const shadowHost = document.getElementById("shadow-targets");
+        const jewishComponents = ["parashah", "shabbat", "holiday"];
+        for (const [id, title] of styledComponents) {
+          Object.assign(defaults, {
+            [`${id}Custom`]: false,
+            [`${id}Color`]: "#101010",
+            [`${id}Bold`]: false,
+            [`shadow_${id}`]: id === "time",
+          });
+          const shadowLabel = document.createElement("label");
+          shadowLabel.className = "choice";
+          const shadowInput = document.createElement("input");
+          shadowInput.name = `shadow_${id}`;
+          shadowInput.type = "checkbox";
+          shadowLabel.append(shadowInput, ` ${title}`);
+          shadowHost.append(shadowLabel);
+          const row = document.createElement("div");
+          row.className = "component-row";
+          const name = document.createElement("span");
+          name.className = "component-name";
+          name.textContent = title;
+          const makeInput = (inputName, type, labelText) => {
+            const input = document.createElement("input");
+            input.name = inputName;
+            input.type = type;
+            if (!labelText) {
+              input.setAttribute("aria-label", `${title} color`);
+              return input;
+            }
+            const label = document.createElement("label");
+            label.className = "choice";
+            label.append(input, ` ${labelText}`);
+            return label;
+          };
+          row.append(
+            name,
+            makeInput(`${id}Custom`, "checkbox", "Own color"),
+            makeInput(`${id}Color`, "color"),
+            makeInput(`${id}Bold`, "checkbox", "Bold"),
+          );
+          (id === "sun" ? sunStyleHost : jewishComponents.includes(id) ? jewishStyleHost : componentStyleHost).append(row);
+        }
+        const message = document.getElementById("status");
+        const field = (name) => form.elements.namedItem(name);
+        function status(text, error = false) {
+          message.textContent = text;
+          if (error) message.dataset.error = "";
+          else delete message.dataset.error;
+        }
+        function validatePattern(value) {
+          if (!value || value.length > 160)
+            return "Enter a date pattern (1–160 characters).";
+          const tokens = [
+            "YYYY",
+            "MMMM",
+            "dddd",
+            "MMM",
+            "ddd",
+            "YY",
+            "MM",
+            "DD",
+            "HH",
+            "hh",
+            "mm",
+            "ss",
+            "WW",
+            "M",
+            "D",
+            "H",
+            "h",
+            "m",
+            "s",
+            "A",
+            "W",
+          ];
+          for (let i = 0; i < value.length; ) {
+            if (value[i] === "'" || value[i] === '"') {
+              const quote = value[i++];
+              let closed = false;
+              while (i < value.length) {
+                if (value[i++] === quote) {
+                  if (value[i] === quote) i++;
+                  else {
+                    closed = true;
+                    break;
+                  }
+                }
+              }
+              if (!closed) return "Close the quoted text in the date pattern.";
+            } else {
+              const token = tokens.find((candidate) =>
+                value.startsWith(candidate, i),
+              );
+              if (token) i += token.length;
+              else if (/[A-Za-z]/.test(value[i]))
+                return "Unknown date token. Quote literal words.";
+              else i++;
+            }
+          }
+          return "";
+        }
+        function validateHebrewPattern(value) {
+          if (!value.trim() || value.length > 160)
+            return "Enter a Hebrew date pattern (1–160 characters).";
+          const tokens = ["HYYYY", "HYY", "HDD", "HW", "HD", "HM", "HB"];
+          for (let i = 0; i < value.length; ) {
+            if (value[i] === "'" || value[i] === '"') {
+              const quote = value[i++];
+              let closed = false;
+              while (i < value.length) {
+                if (value[i++] === quote) {
+                  if (value[i] === quote) i++;
+                  else {
+                    closed = true;
+                    break;
+                  }
+                }
+              }
+              if (!closed)
+                return "Close the quoted text in the Hebrew date pattern.";
+            } else {
+              const token = tokens.find((candidate) =>
+                value.startsWith(candidate, i),
+              );
+              if (token) i += token.length;
+              else if (/[A-Za-z]/.test(value[i]))
+                return "Unknown Hebrew date token. Quote literal words.";
+              else i++;
+            }
+          }
+          return "";
+        }
+        function validImage(value) {
+          return (
+            !value ||
+            (value.length < 1100000 &&
+              (/^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(
+                value,
+              ) ||
+                /^(?![a-z][\w+.-]*:|\/\/|\/|\\|.*(?:\.\.|[\\\x00-\x1f]))[\w. -]+(?:\/[\w. -]+)*\.(?:png|jpe?g|webp|gif)$/i.test(
+                  value,
+                )))
+          );
+        }
+        let config = { ...defaults };
+        try {
+          const saved = localStorage.getItem(KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (
+              !parsed ||
+              typeof parsed !== "object" ||
+              Array.isArray(parsed) ||
+              parsed.version !== 1
+            )
+              throw new Error("Unrecognized settings version.");
+            for (const [key, value] of Object.entries(defaults))
+              if (typeof parsed[key] === typeof value)
+                config[key] = parsed[key];
+            if (!["auto", "always", "mouse", "hidden"].includes(config.navMode))
+              config.navMode = defaults.navMode;
+            for (const key of [
+              "gradientStart",
+              "gradientEnd",
+              ...styledComponents.map(([id]) => `${id}Color`),
+            ])
+              if (!/^#[0-9a-f]{6}$/i.test(config[key]))
+                config[key] = defaults[key];
+            if (
+              !Number.isInteger(config.gradientAngle) ||
+              config.gradientAngle < 0 ||
+              config.gradientAngle > 360
+            )
+              config.gradientAngle = defaults.gradientAngle;
+            if (config.screenPadding < 0 || config.screenPadding > 60)
+              config.screenPadding = defaults.screenPadding;
+            const old = localStorage.getItem("clockConfig");
+            if (old) {
+              const legacy = JSON.parse(old);
+              if (legacy && legacy.version === undefined) {
+                for (const key of [
+                  "is12Hour",
+                  "showSeconds",
+                  "showDate",
+                  "position",
+                  "scale",
+                  "bgColor",
+                  "fontColor",
+                  "bgImage",
+                ]) {
+                  if (typeof legacy[key] === typeof defaults[key])
+                    config[key] = legacy[key];
+                }
+                if (
+                  typeof legacy.dateFormat === "string" &&
+                  !validatePattern(legacy.dateFormat)
+                )
+                  config.dateFormat = legacy.dateFormat;
+              }
+            }
+          }
+        } catch (error) {
+          status(`Saved settings could not be loaded: ${error.message}`, true);
+        }
+        document.documentElement.dataset.retroTheme = config.retroSettingsTheme
+          ? "true"
+          : "false";
+        for (const [key, value] of Object.entries(config)) {
+          if (!field(key)) continue;
+          if (typeof value === "boolean") field(key).checked = value;
+          else field(key).value = value;
+        }
+        const scaleNames = ["scale", "dateScale", "hebrewScale", "jewishScale", "sunIconScale"];
+        const showScale = (name, value) => {
+          document.getElementById(`${name}-value`).textContent =
+            `${Math.round(Number(value) * 100)}%`;
+        };
+        for (const name of scaleNames) showScale(name, config[name]);
+        const gapNames = ["dateGap", "hebrewGap", "sunGap", "topGap", "screenPadding"];
+        const showGap = (name, value) => {
+          document.getElementById(`${name}-value`).textContent =
+            `${Number(value)} px`;
+        };
+        for (const name of gapNames) showGap(name, config[name]);
+        const showAngle = (value) => {
+          document.getElementById("gradientAngle-value").textContent =
+            `${Number(value)}°`;
+        };
+        showAngle(config.gradientAngle);
+        const showPanelOpacity = (value) => {
+          document.getElementById("panelOpacity-value").textContent =
+            `${Number(value)}%`;
+        };
+        showPanelOpacity(config.panelOpacity);
+        const helpText = {
+          is12Hour: "Shows 1–12 with AM/PM instead of the 24-hour clock.",
+          showSeconds: "Adds a seconds counter to the time.",
+          blinkColon: "Makes the dots between hours and minutes flash once per second.",
+          scale: "Makes the time larger or smaller. Date and information sizes are set in their own sections.",
+          centerClock: "Places the clock and dates in the vertical middle of the screen instead of near the top.",
+          clockFont: "Typeface used for the time. Dates and information can follow it or use their own font.",
+          fitScreen: "Scales the whole clock up or down so it fits the window exactly — ideal for TVs, signage and Raspberry Pi screens of different sizes. It re-fits when the window is resized or fullscreen is toggled.",
+          screenPadding: "Empty space kept around the clock when auto-fit is on, so nothing is cut off at the screen edges.",
+          navMode: "The Settings and Fullscreen icons sit in the top-left corner. With “Never show the icons” the display stays clean: double-click anywhere on it (or press S) to open these settings, and press F to toggle fullscreen.",
+          showDate: "Shows the Gregorian date line under the clock.",
+          dateScale: "Makes the Gregorian date larger or smaller.",
+          dateGap: "Vertical space between the clock and the Gregorian date. Negative values pull it closer.",
+          dateFont: "Typeface for the Gregorian date.",
+          showWeek: "Adds the work-week number as an information line.",
+          weekFormat: "Choose whether week numbers below 10 show a leading zero.",
+          city: "Sets the location used for sunrise, sunset, Shabbat times and the default time zone.",
+          jewishScale: "Makes the Torah portion, Shabbat times and holiday text larger or smaller.",
+          sunIconScale: "Makes the next sun event icon or logo larger or smaller without changing the time.",
+          jewishFont: "Typeface for the Torah portion, Shabbat times and holiday.",
+          parashahFormat: "Show the Torah portion with the word “פרשת” before its name, or the name alone.",
+          shabbatFormat: "How the candle-lighting and Shabbat-end times are written.",
+          showHoliday: "Shows the Jewish holiday name on its day.",
+          showParashah: "Shows the weekly Torah portion and Shabbat times on the days chosen below.",
+          showHebrew: "Shows the Hebrew date line under the Gregorian date.",
+          hebrewScale: "Makes the Hebrew date larger or smaller.",
+          hebrewGap: "Vertical space between the Gregorian and Hebrew dates. Negative values pull it closer.",
+          sunGap: "Horizontal space between the Hebrew date and the next sun event.",
+          hebrewFont: "Typeface for the Hebrew date.",
+          showSun: "Shows the time of the next sunrise or sunset for the selected city.",
+          sunIcon: "Icon displayed beside the next sun event. A font glyph takes the color you chose for the Sunrise / sunset item; colored emoji keep their own colors.",
+          sunIconMono: "Turns the emoji into a single-color glyph that follows the item's color. Appearance depends on the fonts installed on the display device.",
+          textShadow: "Adds depth or an outline to the text so it stays readable on busy backgrounds. Choose below which items get it.",
+          retroSettingsTheme: "Uses the pixel arcade typeface on this settings page.",
+          bgColor: "Solid background color. It is also the fallback if the gradient or picture is off.",
+          fontColor: "Color of all text on the display.",
+          gradientEnabled: "Replaces the solid background with a gradient. A background picture, if set, is drawn on top of it.",
+          gradientStart: "First color of the gradient.",
+          gradientEnd: "Second color of the gradient.",
+          gradientAngle: "Direction of the gradient: 0° runs bottom to top, 90° left to right, 180° top to bottom.",
+        };
+        for (const [name, text] of Object.entries(helpText)) {
+          const control = field(name);
+          if (!control) continue;
+          const note = document.createElement("small");
+          note.className = "setting-help";
+          note.id = `help-${name}`;
+          note.textContent = text;
+          control.setAttribute("aria-describedby", note.id);
+          control.closest("label").after(note);
+        }
+        const luminance = (hex) => {
+          const [r, g, b] = [1, 3, 5].map((i) => {
+            const channel = parseInt(hex.slice(i, i + 2), 16) / 255;
+            return channel <= 0.03928
+              ? channel / 12.92
+              : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const contrastRatio = (a, b) => {
+          const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+          return (light + 0.05) / (dark + 0.05);
+        };
+        function updateBackgroundPreview() {
+          const gradientOn = field("gradientEnabled").checked;
+          const colors = gradientOn
+            ? [field("gradientStart").value, field("gradientEnd").value]
+            : [field("bgColor").value];
+          document.getElementById("gradient-preview").style.background = gradientOn
+            ? `linear-gradient(${Number(field("gradientAngle").value)}deg, ${colors[0]}, ${colors[1]})`
+            : colors[0];
+          const worst = Math.min(
+            ...colors.map((color) => contrastRatio(field("fontColor").value, color)),
+          );
+          const note = document.getElementById("contrast-note");
+          const low = worst < 4.5;
+          const hasImage = field("bgImage").value.trim() !== "" || config.bgImage !== "";
+          note.textContent = low
+            ? `Text contrast ${worst.toFixed(1)}:1 is low. Choose a lighter or darker text color (aim for 4.5:1 or more).`
+            : `Text contrast ${worst.toFixed(1)}:1 against the ${gradientOn ? "gradient" : "background color"}.`;
+          if (hasImage)
+            note.textContent += " A background picture is set and is not included in this check.";
+          note.toggleAttribute("data-low", low);
+        }
+        updateBackgroundPreview();
+        const panelNames = [
+          "panelGregorian",
+          "panelHebrew",
+          "panelSun",
+          "panelWeek",
+          "panelParashah",
+        ];
+        const panelsAll = document.getElementById("panels-all");
+        function syncPanelsAll() {
+          const checked = panelNames.filter((name) => field(name).checked);
+          panelsAll.checked = checked.length === panelNames.length;
+          panelsAll.indeterminate =
+            checked.length > 0 && checked.length < panelNames.length;
+        }
+        syncPanelsAll();
+        const shadowNames = styledComponents.map(([id]) => `shadow_${id}`);
+        const shadowAll = document.getElementById("shadow-all");
+        function syncShadowAll() {
+          const checked = shadowNames.filter((name) => field(name).checked);
+          shadowAll.checked = checked.length === shadowNames.length;
+          shadowAll.indeterminate =
+            checked.length > 0 && checked.length < shadowNames.length;
+        }
+        syncShadowAll();
+        const tocLinks = [...document.querySelectorAll("#toc ul a")];
+        const markCurrentSection = (id) =>
+          tocLinks.forEach((link) =>
+            link.setAttribute("aria-current", String(link.hash === `#${id}`)),
+          );
+        if ("IntersectionObserver" in window) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries)
+                if (entry.isIntersecting) markCurrentSection(entry.target.id);
+            },
+            { rootMargin: "-15% 0px -70% 0px" },
+          );
+          for (const link of tocLinks)
+            observer.observe(document.querySelector(link.hash));
+        }
+        if (config.bgImage.startsWith("data:")) field("bgImage").value = "";
+        let saveTimer;
+        function save() {
+          const next = { ...config };
+          for (const [key, value] of Object.entries(defaults)) {
+            if (!field(key)) continue;
+            next[key] =
+              typeof value === "boolean"
+                ? field(key).checked
+                : field(key).value;
+          }
+          for (const name of scaleNames) next[name] = Number(next[name]);
+          for (const name of gapNames) next[name] = Number(next[name]);
+          next.gradientAngle = Number(next.gradientAngle);
+          next.panelOpacity = Number(next.panelOpacity);
+          if (
+            field("bgImage").value.trim() === "" &&
+            config.bgImage.startsWith("data:")
+          )
+            next.bgImage = config.bgImage;
+          document.documentElement.dataset.retroTheme = next.retroSettingsTheme
+            ? "true"
+            : "false";
+          const error =
+            validatePattern(next.dateFormat) ||
+            validateHebrewPattern(next.hebrewDateFormat);
+          if (error) return status(error, true);
+          if (
+            !(next.city in cities) ||
+            !["israel", "diaspora"].includes(next.region) ||
+            !["both", "english", "hebrew"].includes(next.hebrewLanguage) ||
+            !["W", "WW"].includes(next.weekFormat) ||
+            !["monday", "sunday"].includes(next.weekStartsOn) ||
+            !["emoji", "scene", "custom", "none"].includes(next.sunIcon) ||
+            !["right", "left"].includes(next.sunIconSide) ||
+            !["right", "left"].includes(next.sunSide) ||
+            !["prefix", "name", "custom"].includes(next.parashahFormat) ||
+            !["he", "en", "times", "custom"].includes(next.shabbatFormat) ||
+            !next.parashahPattern.trim() ||
+            next.parashahPattern.length > 80 ||
+            !next.shabbatPattern.trim() ||
+            next.shabbatPattern.length > 80 ||
+            ![
+              "calibri",
+              "retro",
+              "arcade",
+              "system",
+              "serif",
+              "mono",
+              "sans",
+            ].includes(next.clockFont) ||
+            !["auto", "always", "mouse", "hidden"].includes(next.navMode) ||
+            !Number.isInteger(next.panelOpacity) ||
+            next.panelOpacity < 5 ||
+            next.panelOpacity > 100 ||
+            !Number.isInteger(next.gradientAngle) ||
+            !/^#[0-9a-f]{6}$/i.test(next.gradientEnd) ||
+            !styledComponents.every(([id]) =>
+              /^#[0-9a-f]{6}$/i.test(next[`${id}Color`]),
+            ) ||
+            !(
+              next.sunLogo === "" ||
+              (next.sunLogo.length < 210000 &&
+                /^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(
+                  next.sunLogo,
+                ))
+            ) ||
+            !["square", "full"].includes(next.clockFace) ||
+            !["none", "retro", "soft", "depth", "extrude", "strong", "light", "hard", "outline", "long", "emboss", "glow", "neon"].includes(
+              next.textShadow,
+            ) ||
+            !["none", "float", "sway", "pulse", "orbit", "tilt"].includes(
+              next.motion,
+            ) ||
+            !noteSlots.every(
+              (slot) => next[`note${slot}Text`].length <= 120,
+            ) ||
+            ![
+              "inherit",
+              "calibri",
+              "arcade",
+              "system",
+              "serif",
+              "mono",
+              "sans",
+            ].includes(next.dateFont) ||
+            ![
+              "inherit",
+              "calibri",
+              "arcade",
+              "system",
+              "serif",
+              "mono",
+              "sans",
+            ].includes(next.hebrewFont) ||
+            ![
+              "inherit",
+              "calibri",
+              "arcade",
+              "system",
+              "serif",
+              "mono",
+              "sans",
+            ].includes(next.jewishFont) ||
+            ![
+              "center",
+              "top-left",
+              "top-right",
+              "bottom-left",
+              "bottom-right",
+            ].includes(next.position) ||
+            !gapNames.every(
+              (name) =>
+                Number.isFinite(next[name]) &&
+                next[name] >= (["topGap", "screenPadding", "sunGap"].includes(name) ? 0 : -40) &&
+                next[name] <= (name === "topGap" ? 600 : name === "screenPadding" ? 60 : 120),
+            ) ||
+            !scaleNames.every(
+              (name) =>
+                Number.isFinite(next[name]) &&
+                next[name] >= 0.5 &&
+                next[name] <= 2,
+            ) ||
+            !/^#[0-9a-f]{6}$/i.test(next.bgColor) ||
+            !/^#[0-9a-f]{6}$/i.test(next.fontColor) ||
+            !validImage(next.bgImage)
+          )
+            return status(
+              "Check the selected fields and use a local image path.",
+              true,
+            );
+          try {
+            new Intl.DateTimeFormat("en", { timeZone: next.timeZone });
+          } catch {
+            return status(
+              "Enter a valid IANA time zone, such as Asia/Jerusalem.",
+              true,
+            );
+          }
+          try {
+            localStorage.setItem(KEY, JSON.stringify(next));
+            config = next;
+            status("Saved — display updated.");
+          } catch (error) {
+            status(`Could not save settings: ${error.message}`, true);
+          }
+        }
+        form.addEventListener("input", (event) => {
+          if (scaleNames.includes(event.target.name))
+            showScale(event.target.name, event.target.value);
+          if (gapNames.includes(event.target.name))
+            showGap(event.target.name, event.target.value);
+          if (event.target.name === "gradientAngle")
+            showAngle(event.target.value);
+          if (event.target.name === "panelOpacity")
+            showPanelOpacity(event.target.value);
+          const colorOwner = styledComponents.find(
+            ([id]) => event.target.name === `${id}Color`,
+          );
+          if (colorOwner) field(`${colorOwner[0]}Custom`).checked = true;
+          updateBackgroundPreview();
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(save, 350);
+        });
+        form.addEventListener("change", (event) => {
+          if (event.target.id === "shadow-all")
+            for (const name of shadowNames)
+              field(name).checked = event.target.checked;
+          if (event.target.id === "panels-all")
+            for (const name of panelNames)
+              field(name).checked = event.target.checked;
+          syncPanelsAll();
+          syncShadowAll();
+          updateBackgroundPreview();
+          if (event.target.name === "city") {
+            field("timeZone").value = cities[event.target.value][0];
+            field("region").value = cities[event.target.value][1];
+          }
+          clearTimeout(saveTimer);
+          save();
+        });
+        document
+          .getElementById("date-example")
+          .addEventListener("change", (event) => {
+            if (!event.target.value) return;
+            field("dateFormat").value = event.target.value;
+            clearTimeout(saveTimer);
+            save();
+          });
+        document
+          .getElementById("hebrew-date-example")
+          .addEventListener("change", (event) => {
+            if (!event.target.value) return;
+            field("hebrewDateFormat").value = event.target.value;
+            clearTimeout(saveTimer);
+            save();
+          });
+        document
+          .getElementById("picture")
+          .addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (
+              !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(
+                file.type,
+              ) ||
+              file.size > 750000
+            ) {
+              status(
+                "Choose a PNG, JPEG, WebP or GIF smaller than 750 KB.",
+                true,
+              );
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              const previous = config.bgImage;
+              config.bgImage = reader.result;
+              field("bgImage").value = "";
+              save();
+              if (message.hasAttribute("data-error")) config.bgImage = previous;
+            };
+            reader.onerror = () =>
+              status("Could not read the selected image.", true);
+            reader.readAsDataURL(file);
+            event.target.value = "";
+          });
+        document
+          .getElementById("remove-picture")
+          .addEventListener("click", () => {
+            config.bgImage = "";
+            field("bgImage").value = "";
+            save();
+          });
+        document
+          .getElementById("sun-picture")
+          .addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            event.target.value = "";
+            if (
+              !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(
+                file.type,
+              ) ||
+              file.size > 120000
+            ) {
+              status(
+                "Choose a PNG, JPEG, WebP or GIF smaller than 120 KB.",
+                true,
+              );
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+              const previous = config.sunLogo;
+              config.sunLogo = reader.result;
+              field("sunIcon").value = "custom";
+              save();
+              if (message.hasAttribute("data-error")) config.sunLogo = previous;
+            };
+            reader.onerror = () =>
+              status("Could not read the selected icon.", true);
+            reader.readAsDataURL(file);
+          });
+        document
+          .getElementById("remove-sun-picture")
+          .addEventListener("click", () => {
+            config.sunLogo = "";
+            field("sunIcon").value = "emoji";
+            save();
+          });
+        const DESIGNS_KEY = "webclockSavedDesigns";
+        const DESIGN_NOTICE_KEY = "webclockDesignNotice";
+        const MAX_DESIGNS = 10;
+        const designName = document.getElementById("design-name");
+        const designList = document.getElementById("design-list");
+        function readDesigns() {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(DESIGNS_KEY));
+            if (
+              parsed &&
+              parsed.version === 1 &&
+              Array.isArray(parsed.items)
+            )
+              return parsed.items
+                .filter(
+                  (item) =>
+                    item &&
+                    typeof item.name === "string" &&
+                    item.config &&
+                    typeof item.config === "object" &&
+                    item.config.version === 1,
+                )
+                .slice(0, MAX_DESIGNS);
+          } catch {}
+          return [];
+        }
+        function writeDesigns(items) {
+          try {
+            localStorage.setItem(
+              DESIGNS_KEY,
+              JSON.stringify({ version: 1, items }),
+            );
+            return true;
+          } catch (error) {
+            status(
+              `Could not store the setting (the browser storage may be full): ${error.message}`,
+              true,
+            );
+            return false;
+          }
+        }
+        function renderDesigns() {
+          const items = readDesigns();
+          designList.replaceChildren();
+          for (const item of items) {
+            const row = document.createElement("li");
+            const load = document.createElement("button");
+            load.type = "button";
+            load.className = "design-load";
+            load.textContent = item.name;
+            load.title = `Load "${item.name}"`;
+            load.addEventListener("click", () => loadDesign(item.name));
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "design-delete";
+            remove.textContent = "✕";
+            remove.title = `Delete "${item.name}"`;
+            remove.setAttribute("aria-label", `Delete ${item.name}`);
+            remove.addEventListener("click", () => deleteDesign(item.name));
+            row.append(load, remove);
+            designList.append(row);
+          }
+          document.getElementById("design-empty").hidden = items.length > 0;
+        }
+        function saveDesign() {
+          const name = designName.value.trim();
+          if (!name) {
+            status("Type a name for the setting first.", true);
+            designName.focus();
+            return;
+          }
+          clearTimeout(saveTimer);
+          save();
+          if (message.hasAttribute("data-error")) return;
+          const items = readDesigns();
+          const index = items.findIndex(
+            (item) => item.name.toLowerCase() === name.toLowerCase(),
+          );
+          if (index < 0 && items.length >= MAX_DESIGNS) {
+            status(
+              `You can keep up to ${MAX_DESIGNS} saved settings. Delete one first.`,
+              true,
+            );
+            return;
+          }
+          const entry = { name, config: { ...config } };
+          if (index < 0) items.push(entry);
+          else items[index] = entry;
+          if (!writeDesigns(items)) return;
+          renderDesigns();
+          designName.value = "";
+          status(
+            `Saved setting "${name}"${index < 0 ? "" : " (replaced the old one)"}.`,
+          );
+        }
+        function loadDesign(name) {
+          const item = readDesigns().find((entry) => entry.name === name);
+          if (!item) {
+            status("That saved setting no longer exists.", true);
+            renderDesigns();
+            return;
+          }
+          try {
+            localStorage.setItem(KEY, JSON.stringify(item.config));
+            sessionStorage.setItem(DESIGN_NOTICE_KEY, `Loaded "${item.name}".`);
+          } catch (error) {
+            status(`Could not load the setting: ${error.message}`, true);
+            return;
+          }
+          location.reload();
+        }
+        function deleteDesign(name) {
+          if (!writeDesigns(readDesigns().filter((item) => item.name !== name)))
+            return;
+          renderDesigns();
+          status(`Deleted "${name}".`);
+        }
+        document
+          .getElementById("design-save")
+          .addEventListener("click", saveDesign);
+        designName.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          saveDesign();
+        });
+        renderDesigns();
+        const designNotice = sessionStorage.getItem(DESIGN_NOTICE_KEY);
+        if (designNotice) {
+          sessionStorage.removeItem(DESIGN_NOTICE_KEY);
+          status(designNotice);
+        }
+      })();
+    </script>
+  </body>
+</html>
