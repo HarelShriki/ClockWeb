@@ -657,12 +657,20 @@
             <input name="sunGap" type="range" min="0" max="120" step="2" />
           </label>
           <label
-            >Next sun event icon
+            >Event to display
+            <select name="sunEvent">
+              <option value="next">Next sun event (Sunrise or Sunset automatically)</option>
+              <option value="sunrise">Sunrise only (הנץ החמה)</option>
+              <option value="sunset">Sunset only (שקיעה)</option>
+            </select>
+          </label>
+          <label
+            >Sun event icon
             <select name="sunIcon">
-              <option value="svg">Vector icon (Raspberry Pi compatible ☀️)</option>
-              <option value="emoji">Sunrise/sunset icon (🌅 🌇)</option>
-              <option value="scene">Sun over horizon (🌄 sunrise, 🌅 sunset)</option>
-              <option value="custom">My logo/icon</option>
+              <option value="svg">Vector icon (Sunrise ↑ / Sunset ↓) (Raspberry Pi compatible)</option>
+              <option value="emoji">Emoji (Sunrise / sunset)</option>
+              <option value="scene">Landscape emoji (Sun over horizon)</option>
+              <option value="custom">My logo / picture</option>
               <option value="none">No icon</option>
             </select>
           </label>
@@ -1089,6 +1097,7 @@
           showWeek: false,
           weekFormat: "W",
           weekStartsOn: "sunday",
+          sunEvent: "next",
           sunIcon: "emoji",
           sunIconSide: "right",
           sunSide: "right",
@@ -1470,6 +1479,7 @@
           sunGap: "Horizontal space between the Hebrew date and the next sun event.",
           hebrewFont: "Typeface for the Hebrew date.",
           showSun: "Shows the time of the next sunrise or sunset for the selected city.",
+          sunEvent: "Choose whether to show the next upcoming event (switches between sunrise and sunset automatically), or keep it fixed on sunrise or sunset.",
           sunIcon: "Icon displayed beside the next sun event. A font glyph takes the color you chose for the Sunrise / sunset item; colored emoji keep their own colors.",
           sunIconMono: "Turns the emoji into a single-color glyph that follows the item's color. Appearance depends on the fonts installed on the display device.",
           textShadow: "Adds depth or an outline to the text so it stays readable on busy backgrounds. Choose below which items get it.",
@@ -1599,6 +1609,7 @@
             !["both", "english", "hebrew"].includes(next.hebrewLanguage) ||
             !["W", "WW"].includes(next.weekFormat) ||
             !["monday", "sunday"].includes(next.weekStartsOn) ||
+            !["next", "sunrise", "sunset"].includes(next.sunEvent) ||
             !["svg", "emoji", "scene", "custom", "none"].includes(next.sunIcon) ||
             !["right", "left"].includes(next.sunIconSide) ||
             !["right", "left"].includes(next.sunSide) ||

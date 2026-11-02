@@ -1117,7 +1117,7 @@ MINIMAL_SOURCE_END</script>
         city: "jerusalem", timeZone: "Asia/Jerusalem",
         region: "israel", hebrewLanguage: "both", showHebrew: true,
         showSun: true, showHoliday: true, showParashah: true, showWeek: false,
-        weekFormat: "W", weekStartsOn: "sunday", sunIcon: "emoji", sunIconSide: "right", sunSide: "right", parashahFormat: "prefix", shabbatFormat: "he", parashahPattern: "פרשת {name}", shabbatPattern: "כניסה {in} יציאה {out}", sunIconMono: false, sunLogo: "",
+        weekFormat: "W", weekStartsOn: "sunday", sunEvent: "next", sunIcon: "emoji", sunIconSide: "right", sunSide: "right", parashahFormat: "prefix", shabbatFormat: "he", parashahPattern: "פרשת {name}", shabbatPattern: "כניסה {in} יציאה {out}", sunIconMono: false, sunLogo: "",
         clockFont: "calibri", dateFont: "inherit", hebrewFont: "inherit", jewishFont: "inherit", navMode: "auto", clockFace: "full",
         slowDrift: false, blinkColon: false, jewishScale: 1, sunIconScale: 1, topGap: 0, centerClock: false, textShadow: "none", motion: "none",
         hebrewDateFormat: "HW - HD HB", layoutRevision: 2, dateScale: 1, hebrewScale: 1, dateGap: 0, hebrewGap: 0, sunGap: 20,
@@ -1167,8 +1167,8 @@ MINIMAL_SOURCE_END</script>
         for (const key of ["is12Hour","showSeconds","showDate","showHebrew","showSun","showHoliday","showParashah","showWeek","slowDrift","blinkColon","centerClock","parashahSun","parashahMon","parashahTue","parashahWed","parashahThu","parashahFri","parashahSat","retroSettingsTheme","fitScreen","gradientEnabled","sunIconMono","panelGregorian","panelHebrew","panelSun","panelWeek","panelParashah"]) {
           if (typeof raw[key] === "boolean") c[key] = raw[key];
         }
-        for (const key of ["parashahFormat","shabbatFormat","sunSide","sunIconSide","position","hebrewLanguage","region","weekFormat","weekStartsOn","sunIcon","clockFont","dateFont","hebrewFont","jewishFont","navMode","clockFace","textShadow","motion"]) {
-          const valid = { parashahFormat: ["prefix","name","custom"], shabbatFormat: ["he","en","times","custom"], sunIconSide: ["right","left"], sunSide: ["right","left"], position: ["center","top-left","top-right","bottom-left","bottom-right"], hebrewLanguage: ["both","english","hebrew"], region: ["israel","diaspora"], weekFormat: ["W","WW"], weekStartsOn: ["monday","sunday"], sunIcon: ["svg","emoji","scene","custom","none"], clockFont: ["calibri","retro","arcade","system","serif","mono","sans"], dateFont: ["inherit","calibri","arcade","system","serif","mono","sans"], hebrewFont: ["inherit","calibri","arcade","system","serif","mono","sans"], jewishFont: ["inherit","calibri","arcade","system","serif","mono","sans"], navMode: ["auto","always","mouse","hidden"], clockFace: ["square","full"], textShadow: ["none","retro","soft","depth","extrude","strong","light","hard","outline","long","emboss","glow","neon"], motion: ["none","float","sway","pulse","orbit","tilt"] };
+        for (const key of ["parashahFormat","shabbatFormat","sunEvent","sunSide","sunIconSide","position","hebrewLanguage","region","weekFormat","weekStartsOn","sunIcon","clockFont","dateFont","hebrewFont","jewishFont","navMode","clockFace","textShadow","motion"]) {
+          const valid = { parashahFormat: ["prefix","name","custom"], shabbatFormat: ["he","en","times","custom"], sunEvent: ["next","sunrise","sunset"], sunIconSide: ["right","left"], sunSide: ["right","left"], position: ["center","top-left","top-right","bottom-left","bottom-right"], hebrewLanguage: ["both","english","hebrew"], region: ["israel","diaspora"], weekFormat: ["W","WW"], weekStartsOn: ["monday","sunday"], sunIcon: ["svg","emoji","scene","custom","none"], clockFont: ["calibri","retro","arcade","system","serif","mono","sans"], dateFont: ["inherit","calibri","arcade","system","serif","mono","sans"], hebrewFont: ["inherit","calibri","arcade","system","serif","mono","sans"], jewishFont: ["inherit","calibri","arcade","system","serif","mono","sans"], navMode: ["auto","always","mouse","hidden"], clockFace: ["square","full"], textShadow: ["none","retro","soft","depth","extrude","strong","light","hard","outline","long","emboss","glow","neon"], motion: ["none","float","sway","pulse","orbit","tilt"] };
           if (valid[key].includes(raw[key])) c[key] = raw[key];
         }
         noteSlots.forEach((slot) => {
@@ -1372,13 +1372,24 @@ MINIMAL_SOURCE_END</script>
               $("shabbat-times").textContent = times ? shabbatLine[config.shabbatFormat](times) : "";
             }
             if (config.showSun) {
-              const next = calendar.getNextSolarEvent(now, options);
+              let next = calendar.getNextSolarEvent(now, options);
+              if (config.sunEvent === "sunrise") {
+                const targetDate = (data.sunrise && data.sunrise.getTime() > now.getTime())
+                  ? data.sunrise
+                  : calendar.getData(new Date(now.getTime() + 86400000), options).sunrise;
+                next = { type: "sunrise", date: targetDate, warning: "" };
+              } else if (config.sunEvent === "sunset") {
+                const targetDate = (data.sunset && data.sunset.getTime() > now.getTime())
+                  ? data.sunset
+                  : calendar.getData(new Date(now.getTime() + 86400000), options).sunset;
+                next = { type: "sunset", date: targetDate, warning: "" };
+              }
               const label = next.date ? (next.type === "sunrise" ? "הזריחה הבאה" : "השקיעה הבאה") : "אין אירוע שמש זמין בשבעת הימים הקרובים. בדקו את המיקום.";
               $("sun-section").setAttribute("aria-label", label);
               const sunGlyphs = config.sunIcon === "scene" ? { sunrise: "🌄", sunset: "🌅" } : { sunrise: "🌅", sunset: "🌇" };
               const sunSvgs = {
-                sunrise: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v6m0 0l-2-2m2 2l2-2"/><path d="M4.93 10.93l1.41 1.41"/><path d="M2 18h20"/><path d="M20 10l-1.41 1.41"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>',
-                sunset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10v6m0 0l-2-2m2 2l2-2"/><path d="M4.93 10.93l1.41 1.41"/><path d="M2 18h20"/><path d="M20 10l-1.41 1.41"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>'
+                sunrise: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 11V3M9 6l3-3 3 3"/><path d="M4.93 10.93l1.41 1.41"/><path d="M17.66 12.34l1.41-1.41"/><path d="M2 18h20"/><path d="M17 18a5 5 0 0 0-10 0"/></svg>',
+                sunset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v8M9 8l3 3 3-3"/><path d="M4.93 10.93l1.41 1.41"/><path d="M17.66 12.34l1.41-1.41"/><path d="M2 18h20"/><path d="M17 18a5 5 0 0 0-10 0"/></svg>'
               };
               if (config.sunIcon === "svg" && next.date) {
                 $("sun-icon").innerHTML = sunSvgs[next.type] || "";
