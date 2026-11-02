@@ -186,7 +186,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     #details section { display: inline-flex; gap: .4rem; align-items: baseline; min-width: 0; }
     #details section .eyebrow { margin: 0; white-space: nowrap; }
     #sun-section .eyebrow { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-    #sun-icon { font-size: 1.25rem; line-height: 1; }
+    #sun-icon { font-size: 1.25rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+    #sun-icon svg { width: 1.25em; height: 1.25em; display: inline-block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     #sun-icon[data-mono="true"] { font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "Apple Symbols", Symbola, sans-serif; color: inherit; }
     #sun-logo { width: 1.5rem; height: 1.5rem; object-fit: contain; vertical-align: middle; }
     #details section[hidden], [hidden] { display: none !important; }
@@ -1167,7 +1168,7 @@ MINIMAL_SOURCE_END</script>
           if (typeof raw[key] === "boolean") c[key] = raw[key];
         }
         for (const key of ["parashahFormat","shabbatFormat","sunSide","sunIconSide","position","hebrewLanguage","region","weekFormat","weekStartsOn","sunIcon","clockFont","dateFont","hebrewFont","jewishFont","navMode","clockFace","textShadow","motion"]) {
-          const valid = { parashahFormat: ["prefix","name","custom"], shabbatFormat: ["he","en","times","custom"], sunIconSide: ["right","left"], sunSide: ["right","left"], position: ["center","top-left","top-right","bottom-left","bottom-right"], hebrewLanguage: ["both","english","hebrew"], region: ["israel","diaspora"], weekFormat: ["W","WW"], weekStartsOn: ["monday","sunday"], sunIcon: ["emoji","scene","custom","none"], clockFont: ["calibri","retro","arcade","system","serif","mono","sans"], dateFont: ["inherit","calibri","arcade","system","serif","mono","sans"], hebrewFont: ["inherit","calibri","arcade","system","serif","mono","sans"], jewishFont: ["inherit","calibri","arcade","system","serif","mono","sans"], navMode: ["auto","always","mouse","hidden"], clockFace: ["square","full"], textShadow: ["none","retro","soft","depth","extrude","strong","light","hard","outline","long","emboss","glow","neon"], motion: ["none","float","sway","pulse","orbit","tilt"] };
+          const valid = { parashahFormat: ["prefix","name","custom"], shabbatFormat: ["he","en","times","custom"], sunIconSide: ["right","left"], sunSide: ["right","left"], position: ["center","top-left","top-right","bottom-left","bottom-right"], hebrewLanguage: ["both","english","hebrew"], region: ["israel","diaspora"], weekFormat: ["W","WW"], weekStartsOn: ["monday","sunday"], sunIcon: ["svg","emoji","scene","custom","none"], clockFont: ["calibri","retro","arcade","system","serif","mono","sans"], dateFont: ["inherit","calibri","arcade","system","serif","mono","sans"], hebrewFont: ["inherit","calibri","arcade","system","serif","mono","sans"], jewishFont: ["inherit","calibri","arcade","system","serif","mono","sans"], navMode: ["auto","always","mouse","hidden"], clockFace: ["square","full"], textShadow: ["none","retro","soft","depth","extrude","strong","light","hard","outline","long","emboss","glow","neon"], motion: ["none","float","sway","pulse","orbit","tilt"] };
           if (valid[key].includes(raw[key])) c[key] = raw[key];
         }
         noteSlots.forEach((slot) => {
@@ -1205,15 +1206,37 @@ MINIMAL_SOURCE_END</script>
       }
       let config = { ...defaults };
       try {
-        const saved = localStorage.getItem(KEY);
-        if (saved) config = normalize(JSON.parse(saved));
-        else {
-          const old = localStorage.getItem("clockConfig");
-          if (old) {
-            const legacy = JSON.parse(old);
-            if (legacy && legacy.version === undefined) {
-              const mapped = { ...legacy, version: 1, dateFormat: { "DD/MM/YYYY": "DD/MM/YYYY", "MM/DD/YYYY": "MM/DD/YYYY", "YYYY-MM-DD": "YYYY-MM-DD", "D MMM YYYY": "D MMM YYYY" }[legacy.dateFormat] || defaults.dateFormat };
-              config = normalize(mapped);
+        let loadedFromUrl = false;
+        const hashMatch = location.hash.match(/[#&]config=([^&]+)/);
+        const searchMatch = location.search.match(/[?&]config=([^&]+)/);
+        const rawParam = hashMatch ? hashMatch[1] : (searchMatch ? searchMatch[1] : null);
+        if (rawParam) {
+          try {
+            const decoded = decodeURIComponent(rawParam);
+            config = normalize(JSON.parse(decoded));
+            localStorage.setItem(KEY, JSON.stringify(config));
+            loadedFromUrl = true;
+            if (history.replaceState) {
+              const cleanSearch = location.search.replace(/[?&]config=[^&]+/, "").replace(/^&/, "?");
+              const cleanHash = location.hash.replace(/[#&]config=[^&]+/, "").replace(/^&/, "#");
+              history.replaceState(null, "", (location.pathname + cleanSearch + cleanHash) || location.pathname);
+            }
+          } catch (e) {
+            console.warn("Failed to load config from URL param", e);
+          }
+        }
+        if (!loadedFromUrl) {
+          const saved = localStorage.getItem(KEY);
+          if (saved) config = normalize(JSON.parse(saved));
+          else {
+            const old = localStorage.getItem("clockConfig");
+            if (old) {
+              const legacy = JSON.parse(old);
+              if (legacy && legacy.version === undefined) {
+                const mapped = { ...legacy, version: 1, dateFormat: { "DD/MM/YYYY": "DD/MM/YYYY", "MM/DD/YYYY": "MM/DD/YYYY", "YYYY-MM-DD": "YYYY-MM-DD", "D MMM YYYY": "D MMM YYYY" }[legacy.dateFormat] || defaults.dateFormat };
+                config = normalize(mapped);
+              }
+              localStorage.removeItem("clockConfig");
             }
           }
         }
@@ -1353,7 +1376,17 @@ MINIMAL_SOURCE_END</script>
               const label = next.date ? (next.type === "sunrise" ? "הזריחה הבאה" : "השקיעה הבאה") : "אין אירוע שמש זמין בשבעת הימים הקרובים. בדקו את המיקום.";
               $("sun-section").setAttribute("aria-label", label);
               const sunGlyphs = config.sunIcon === "scene" ? { sunrise: "🌄", sunset: "🌅" } : { sunrise: "🌅", sunset: "🌇" };
-              $("sun-icon").textContent = (config.sunIcon === "emoji" || config.sunIcon === "scene") && next.date ? sunGlyphs[next.type] + (config.sunIconMono ? "\uFE0E" : "") : "";
+              const sunSvgs = {
+                sunrise: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2v6m0 0l-2-2m2 2l2-2"/><path d="M4.93 10.93l1.41 1.41"/><path d="M2 18h20"/><path d="M20 10l-1.41 1.41"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>',
+                sunset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10v6m0 0l-2-2m2 2l2-2"/><path d="M4.93 10.93l1.41 1.41"/><path d="M2 18h20"/><path d="M20 10l-1.41 1.41"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>'
+              };
+              if (config.sunIcon === "svg" && next.date) {
+                $("sun-icon").innerHTML = sunSvgs[next.type] || "";
+              } else if ((config.sunIcon === "emoji" || config.sunIcon === "scene") && next.date) {
+                $("sun-icon").textContent = sunGlyphs[next.type] + (config.sunIconMono ? "\uFE0E" : "");
+              } else {
+                $("sun-icon").replaceChildren();
+              }
               $("sun-icon").dataset.mono = String(config.sunIconMono);
               $("sun-logo").hidden = config.sunIcon !== "custom" || !config.sunLogo;
               $("sun").textContent = next.date

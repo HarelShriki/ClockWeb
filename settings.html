@@ -180,6 +180,26 @@
         color: #bed0ca;
         font-size: 0.8rem;
       }
+      .profile-transfer {
+        margin-top: 1rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid rgba(228, 212, 148, 0.25);
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+      .profile-transfer button {
+        width: 100%;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+      }
+      .profile-transfer-title {
+        margin: 0 0 0.2rem;
+        font-size: 0.85rem;
+        color: #e4d494;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
       @media (max-width: 860px) {
         body {
           padding-top: 3.5rem;
@@ -418,6 +438,13 @@
         <h3 id="design-heading">Load setting</h3>
         <ul id="design-list" aria-labelledby="design-heading"></ul>
         <p id="design-empty" hidden>No saved settings yet.</p>
+        <div class="profile-transfer">
+          <h4 class="profile-transfer-title">Transfer &amp; Backup</h4>
+          <button type="button" id="transfer-export" title="Download your settings to a .json file">Export settings (file)</button>
+          <input type="file" id="transfer-import-file" accept=".json,application/json" hidden />
+          <button type="button" id="transfer-import" title="Load settings from a .json file">Import settings (file)</button>
+          <button type="button" id="transfer-link" title="Copy URL link with settings to clipboard">Copy shareable link</button>
+        </div>
       </div>
     </nav>
     <main>
@@ -632,12 +659,16 @@
           <label
             >Next sun event icon
             <select name="sunIcon">
+              <option value="svg">Vector icon (Raspberry Pi compatible ☀️)</option>
               <option value="emoji">Sunrise/sunset icon (🌅 🌇)</option>
               <option value="scene">Sun over horizon (🌄 sunrise, 🌅 sunset)</option>
               <option value="custom">My logo/icon</option>
               <option value="none">No icon</option>
             </select>
           </label>
+          <p class="field-hint" style="margin-top: -0.3rem; margin-bottom: 0.8rem; font-size: 0.85rem; color: #bed0ca; line-height: 1.4;">
+            💡 <strong>Raspberry Pi note:</strong> If emoji icons appear as blank boxes (tofu), choose <em>Vector icon</em>, or install emoji fonts on your Raspberry Pi: <code>sudo apt install fonts-noto-color-emoji</code>
+          </p>
           <label
             >Icon / logo position
             <select name="sunIconSide">
@@ -1347,29 +1378,33 @@
               config.gradientAngle = defaults.gradientAngle;
             if (config.screenPadding < 0 || config.screenPadding > 60)
               config.screenPadding = defaults.screenPadding;
+          } else {
             const old = localStorage.getItem("clockConfig");
             if (old) {
-              const legacy = JSON.parse(old);
-              if (legacy && legacy.version === undefined) {
-                for (const key of [
-                  "is12Hour",
-                  "showSeconds",
-                  "showDate",
-                  "position",
-                  "scale",
-                  "bgColor",
-                  "fontColor",
-                  "bgImage",
-                ]) {
-                  if (typeof legacy[key] === typeof defaults[key])
-                    config[key] = legacy[key];
+              try {
+                const legacy = JSON.parse(old);
+                if (legacy && legacy.version === undefined) {
+                  for (const key of [
+                    "is12Hour",
+                    "showSeconds",
+                    "showDate",
+                    "position",
+                    "scale",
+                    "bgColor",
+                    "fontColor",
+                    "bgImage",
+                  ]) {
+                    if (typeof legacy[key] === typeof defaults[key])
+                      config[key] = legacy[key];
+                  }
+                  if (
+                    typeof legacy.dateFormat === "string" &&
+                    !validatePattern(legacy.dateFormat)
+                  )
+                    config.dateFormat = legacy.dateFormat;
                 }
-                if (
-                  typeof legacy.dateFormat === "string" &&
-                  !validatePattern(legacy.dateFormat)
-                )
-                  config.dateFormat = legacy.dateFormat;
-              }
+                localStorage.removeItem("clockConfig");
+              } catch {}
             }
           }
         } catch (error) {
@@ -1564,7 +1599,7 @@
             !["both", "english", "hebrew"].includes(next.hebrewLanguage) ||
             !["W", "WW"].includes(next.weekFormat) ||
             !["monday", "sunday"].includes(next.weekStartsOn) ||
-            !["emoji", "scene", "custom", "none"].includes(next.sunIcon) ||
+            !["svg", "emoji", "scene", "custom", "none"].includes(next.sunIcon) ||
             !["right", "left"].includes(next.sunIconSide) ||
             !["right", "left"].includes(next.sunSide) ||
             !["prefix", "name", "custom"].includes(next.parashahFormat) ||
@@ -1927,6 +1962,122 @@
           event.preventDefault();
           saveDesign();
         });
+        function exportSettings() {
+          clearTimeout(saveTimer);
+          save();
+          if (message.hasAttribute("data-error")) return;
+          const payload = {
+            app: "webclock",
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            config: { ...config },
+            savedDesigns: readDesigns(),
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          const dateStr = new Date().toISOString().slice(0, 10);
+          link.download = `clock-settings-${dateStr}.json`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          status("Exported settings file successfully.");
+        }
+        function importSettingsJson(text) {
+          try {
+            const data = JSON.parse(text);
+            let importedConfig = null;
+            let importedDesigns = null;
+
+            if (data && typeof data === "object") {
+              if (data.config && typeof data.config === "object") {
+                importedConfig = data.config;
+              } else if (data.version === 1 && typeof data.city === "string") {
+                importedConfig = data;
+              }
+              if (Array.isArray(data.savedDesigns)) {
+                importedDesigns = data.savedDesigns;
+              } else if (Array.isArray(data.items)) {
+                importedDesigns = data.items;
+              }
+            }
+
+            if (!importedConfig && !importedDesigns) {
+              throw new Error("File does not contain recognizable clock settings.");
+            }
+
+            if (importedConfig) {
+              const validated = { ...defaults };
+              for (const [key, val] of Object.entries(defaults)) {
+                if (typeof importedConfig[key] === typeof val) {
+                  validated[key] = importedConfig[key];
+                }
+              }
+              localStorage.setItem(KEY, JSON.stringify(validated));
+            }
+
+            if (importedDesigns) {
+              const current = readDesigns();
+              const merged = [...importedDesigns.filter((item) => item && typeof item.name === "string" && item.config)];
+              for (const cur of current) {
+                if (!merged.some((m) => m.name.toLowerCase() === cur.name.toLowerCase())) {
+                  merged.push(cur);
+                }
+              }
+              localStorage.setItem(DESIGNS_KEY, JSON.stringify({ version: 1, items: merged.slice(0, MAX_DESIGNS) }));
+            }
+
+            sessionStorage.setItem(DESIGN_NOTICE_KEY, "Settings imported successfully!");
+            location.reload();
+          } catch (err) {
+            status(`Could not import settings: ${err.message}`, true);
+          }
+        }
+        function copyShareLink() {
+          clearTimeout(saveTimer);
+          save();
+          if (message.hasAttribute("data-error")) return;
+          const serialized = JSON.stringify(config);
+          const encoded = encodeURIComponent(serialized);
+          const targetUrl = new URL("index.html", location.href);
+          targetUrl.hash = `config=${encoded}`;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard
+              .writeText(targetUrl.href)
+              .then(() => {
+                status("Copied shareable link! Open it on your other PC or Raspberry Pi.");
+              })
+              .catch(() => {
+                prompt("Copy this shareable link for your other PC or Raspberry Pi:", targetUrl.href);
+              });
+          } else {
+            prompt("Copy this shareable link for your other PC or Raspberry Pi:", targetUrl.href);
+          }
+        }
+        document
+          .getElementById("transfer-export")
+          .addEventListener("click", exportSettings);
+        const importFileInput = document.getElementById("transfer-import-file");
+        document
+          .getElementById("transfer-import")
+          .addEventListener("click", () => importFileInput.click());
+        importFileInput.addEventListener("change", (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => importSettingsJson(event.target.result);
+          reader.onerror = () =>
+            status("Failed to read the selected file.", true);
+          reader.readAsText(file);
+          importFileInput.value = "";
+        });
+        document
+          .getElementById("transfer-link")
+          .addEventListener("click", copyShareLink);
         renderDesigns();
         const designNotice = sessionStorage.getItem(DESIGN_NOTICE_KEY);
         if (designNotice) {
