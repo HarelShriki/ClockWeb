@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casio G-Shock GAC-2500 Screensaver Timepiece</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="screensaver-mode">
+  <!-- Interactive Particle Background Canvas -->
+  <canvas id="particle-canvas"></canvas>
+
+  <div class="app-viewport">
+    <!-- Top Header Bar (Auto-hides in screensaver mode) -->
+    <header class="header-bar auto-fade" id="header-bar">
+      <div class="brand-group">
+        <span class="gshock-logo">G-SHOCK</span>
+        <!-- Watch Model Selector for future models -->
+        <div class="model-select-wrapper">
+          <select id="model-selector" class="model-select" title="Select Casio Watch Model">
+            <option value="CASIO-GAC-2500-3A">GAC-2500-3A (Green Resin)</option>
+            <option value="CASIO-GAC-2500-3A-VECTOR-BW-STRAP">GAC-2500-3A Vector BW (With Strap)</option>
+            <option value="CASIO-GAC-2500-3A-VECTOR-BW-DIAL">GAC-2500-3A Vector BW (Dial Only)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick View Controls -->
+      <div class="view-toggles">
+        <!-- 3D Motion Toggle Button (OFF by default; user can click to enable with V checkmark) -->
+        <button class="pill-btn" id="toggle-motion" title="Toggle 3D Floating Motion & Perspective (OFF by default)">
+          <span class="v-checkbox" id="motion-v-box"></span>
+          <span id="motion-text">3D Motion: OFF</span>
+        </button>
+
+        <!-- Motion Speed Segmented Bars (Slow -> Fast) -->
+        <div class="speed-bars-control" id="speed-bars-control" title="Random Motion Speed: Click bars to adjust (1: 0.5x, 2: 0.8x, 3: 1.2x, 4: 2.0x)">
+          <span class="speed-bars-label">SPEED</span>
+          <div class="speed-bars-container" id="speed-bars-container">
+            <div class="speed-bar" data-level="1"></div>
+            <div class="speed-bar" data-level="2"></div>
+            <div class="speed-bar active" data-level="3"></div>
+            <div class="speed-bar" data-level="4"></div>
+          </div>
+          <span class="speed-val-badge" id="speed-val-badge">1.2x</span>
+        </div>
+
+        <!-- 3-Way Dial Toggle: Clean PNG / WebP Original / Green Center Map -->
+        <button class="pill-btn" id="toggle-dial-mode" title="Cycle: Clean PNG Dial → WebP Dial → Green Center Map">
+          <span class="dot"></span>
+          <span id="dial-mode-text">Dial: PNG Clean</span>
+        </button>
+
+        <!-- Movement Mode: Quartz Step vs Smooth Sweep -->
+        <button class="pill-btn" id="toggle-movement" title="Toggle between 1Hz Quartz step and smooth mechanical sweep">
+          <span id="movement-text">Quartz 1Hz</span>
+        </button>
+
+        <!-- Screen Coverage / Size Toggle (Supports >100% Zoom) -->
+        <button class="pill-btn" id="toggle-screen-scale" title="Adjust Screen Size (Cycle: 98% → 100% → 115% → 130% → 150% → 75% → 88%)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+          <span id="screen-scale-text">Screen: 98%</span>
+        </button>
+
+        <!-- Sound Ticks Toggle -->
+        <button class="pill-btn icon-only" id="toggle-sound" title="Toggle Mechanical Audio Ticks">
+          <svg id="sound-icon-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+          <svg id="sound-icon-on" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+
+        <!-- Center Circles Calibration Panel Toggle -->
+        <button class="pill-btn calibrate-btn" id="toggle-calibrate" title="Configure and Calibrate Center Circles">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span>Calibrate Circles</span>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button class="pill-btn icon-only" id="toggle-fullscreen" title="Toggle Fullscreen Screensaver">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Screensaver Stage: Watch Displayed in Full (NO circular cutting crop) -->
+    <main class="screensaver-stage">
+      <div class="watch-frame" id="watch-frame">
+        <!-- Watch Dial Surface: Full natural rectangular/square case -->
+        <div class="watch-surface" id="watch-surface">
+          <!-- Dial Background: User's Clean PNG Photo from Watch/CASIO-GAC-2500-3A/png/ -->
+          <img src="Watch/CASIO-GAC-2500-3A/png/clock clean.png" id="dial-png-img" class="dial-layer dial-png active" alt="Casio Clean Clock Face PNG" draggable="false">
+
+          <!-- Dial Background: Original WebP Photo -->
+          <img src="Watch/CASIO-GAC-2500-3A/clock clean.webp" id="dial-webp-img" class="dial-layer dial-webp" alt="Casio Clean Clock Face WebP" draggable="false">
+
+          <!-- Dial Background: Green Center Map Reference from Watch/CASIO-GAC-2500-3A/map/ -->
+          <img src="Watch/CASIO-GAC-2500-3A/map/clock clean.png" id="dial-map-img" class="dial-layer dial-map" alt="Casio Center Map Reference" draggable="false">
+
+          <!-- Date Aperture Window at 3 O'clock (3-Day Vertical Aperture: Day Before, Today, Day After) -->
+          <div class="date-window" id="date-window" title="3-Day Date Aperture">
+            <span class="date-num date-prev" id="date-prev-text">12</span>
+            <span class="date-num date-curr" id="date-curr-text">13</span>
+            <span class="date-num date-next" id="date-next-text">14</span>
+          </div>
+
+          <!-- Small Seconds Subdial Hand at 9 O'clock (from Watch/CASIO-GAC-2500-3A/png/hands second.png) -->
+          <div class="subdial-anchor" id="subdial-anchor">
+            <img src="Watch/CASIO-GAC-2500-3A/png/hands second.png" class="hand-second" id="hand-second" alt="Second Hand PNG" draggable="false">
+          </div>
+
+          <!-- Center Pinion: Hour Hand, Minute Hand (from authentic transparent PNGs) -->
+          <div class="main-pinion-anchor" id="main-pinion-anchor">
+            <img src="Watch/CASIO-GAC-2500-3A/png/hands Hour.png" class="hand-hour" id="hand-hour" alt="Hour Hand PNG" draggable="false">
+            <img src="Watch/CASIO-GAC-2500-3A/png/hands Minute.png" class="hand-minute" id="hand-minute" alt="Minute Hand PNG" draggable="false">
+          </div>
+
+
+          <!-- Calibration Circles Overlay (Visible when Calibration Mode is Active) -->
+          <svg class="calibration-overlay" id="calibration-overlay" viewBox="0 0 1024 1024">
+            <!-- Main Dial Crosshair & Center Circle (Red) -->
+            <circle id="calib-center-circle" cx="513" cy="498.5" r="18" fill="rgba(255, 51, 68, 0.25)" stroke="#ff3344" stroke-width="2"/>
+            <circle id="calib-center-guide" cx="513" cy="498.5" r="235" fill="none" stroke="#ff3344" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <line id="calib-cx-line" x1="0" y1="498.5" x2="1024" y2="498.5" stroke="rgba(255, 51, 68, 0.6)" stroke-width="1"/>
+            <line id="calib-cy-line" x1="513" y1="0" x2="513" y2="1024" stroke="rgba(255, 51, 68, 0.6)" stroke-width="1"/>
+
+            <!-- 9 O'clock Subdial Crosshair & Center Circle (Cyan) -->
+            <circle id="calib-subdial-circle" cx="322" cy="503" r="14" fill="rgba(0, 240, 255, 0.25)" stroke="#00f0ff" stroke-width="2"/>
+            <circle id="calib-subdial-guide" cx="322" cy="503" r="85" fill="none" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <line id="calib-sub-x" x1="200" y1="503" x2="444" y2="503" stroke="rgba(0, 240, 255, 0.6)" stroke-width="1"/>
+            <line id="calib-sub-y" x1="322" y1="380" x2="322" y2="626" stroke="rgba(0, 240, 255, 0.6)" stroke-width="1"/>
+
+            <!-- 3 O'clock Date Window Box (Yellow 3-Day Aperture) -->
+            <rect id="calib-date-box" x="770" y="447" width="55" height="129" rx="3" fill="rgba(255, 215, 0, 0.20)" stroke="#ffd700" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Screensaver HUD Bar (Auto-hides on idle) -->
+    <footer class="hud-bar auto-fade" id="hud-bar">
+      <div class="hud-chip">
+        <span class="hud-label">DATE</span>
+        <span class="hud-val" id="hud-date-val">--</span>
+      </div>
+      <div class="hud-chip highlight">
+        <span class="hud-label">TIME</span>
+        <span class="hud-val mono" id="hud-digital-time">--:--:--</span>
+      </div>
+      <div class="hud-chip">
+        <span class="hud-label">SEC</span>
+        <span class="hud-val mono" id="hud-sec-val">--</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Interactive Center Calibration Sidebar / Drawer -->
+  <aside class="calibration-drawer" id="calibration-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+        </svg>
+        <span>Center Circles Calibration</span>
+      </div>
+      <button class="drawer-close" id="close-drawer-btn" title="Close Calibration">&times;</button>
+    </div>
+
+    <div class="drawer-content">
+      <p class="drawer-hint">
+        Directly uses transparent PNG components from <strong>Watch/CASIO-GAC-2500-3A/png/</strong> and center markers from <strong>map/</strong>.
+      </p>
+
+      <!-- Section: Screen Coverage & Size (Upper to Bottom & Zoom beyond 100%) -->
+      <div class="control-group">
+        <h4>Screen Coverage & Zoom (40% - 200%)</h4>
+        <div class="slider-row">
+          <label>Screen Size (%): <span id="val-screen-scale">98%</span></label>
+          <input type="range" id="slider-screen-scale" min="40" max="200" step="1" value="98">
+        </div>
+      </div>
+
+      <!-- Section: Main Dial Center -->
+      <div class="control-group">
+        <h4>1. Main Pinion Center (Red Crosshair)</h4>
+        <div class="slider-row">
+          <label>Center X (%): <span id="val-center-x">50.10%</span></label>
+          <input type="range" id="slider-center-x" min="45" max="55" step="0.01" value="50.10">
+        </div>
+        <div class="slider-row">
+          <label>Center Y (%): <span id="val-center-y">48.68%</span></label>
+          <input type="range" id="slider-center-y" min="45" max="55" step="0.01" value="48.68">
+        </div>
+      </div>
+
+      <!-- Section: 9 O'clock Subdial -->
+      <div class="control-group">
+        <h4>2. Small Seconds Subdial (9h, Cyan Crosshair)</h4>
+        <div class="slider-row">
+          <label>Subdial X (%): <span id="val-subdial-x">31.45%</span></label>
+          <input type="range" id="slider-subdial-x" min="25" max="38" step="0.01" value="31.45">
+        </div>
+        <div class="slider-row">
+          <label>Subdial Y (%): <span id="val-subdial-y">49.13%</span></label>
+          <input type="range" id="slider-subdial-y" min="44" max="55" step="0.01" value="49.13">
+        </div>
+        <div class="slider-row">
+          <label>Second Hand Pivot Y (%): <span id="val-sec-py">58.06%</span></label>
+          <input type="range" id="slider-sec-py" min="50" max="65" step="0.01" value="58.06">
+        </div>
+        <div class="slider-row">
+          <label>Second Hand Scale: <span id="val-sec-scale">0.258</span></label>
+          <input type="range" id="slider-sec-scale" min="0.18" max="0.32" step="0.002" value="0.258">
+        </div>
+      </div>
+
+      <!-- Section: Hour Hand -->
+      <div class="control-group">
+        <h4>3. Hour Hand (Pivot & Scale)</h4>
+        <div class="slider-row">
+          <label>Pivot X (%): <span id="val-hour-px">51.15%</span></label>
+          <input type="range" id="slider-hour-px" min="45" max="58" step="0.01" value="51.15">
+        </div>
+        <div class="slider-row">
+          <label>Pivot Y (%): <span id="val-hour-py">70.90%</span></label>
+          <input type="range" id="slider-hour-py" min="60" max="85" step="0.01" value="70.90">
+        </div>
+        <div class="slider-row">
+          <label>Hour Hand Scale: <span id="val-hour-scale">0.395</span></label>
+          <input type="range" id="slider-hour-scale" min="0.25" max="0.50" step="0.002" value="0.395">
+        </div>
+      </div>
+
+      <!-- Section: Minute Hand -->
+      <div class="control-group">
+        <h4>4. Minute Hand (Pivot & Scale)</h4>
+        <div class="slider-row">
+          <label>Pivot X (%): <span id="val-min-px">49.50%</span></label>
+          <input type="range" id="slider-min-px" min="44" max="56" step="0.01" value="49.50">
+        </div>
+        <div class="slider-row">
+          <label>Pivot Y (%): <span id="val-min-py">80.97%</span></label>
+          <input type="range" id="slider-min-py" min="70" max="92" step="0.01" value="80.97">
+        </div>
+        <div class="slider-row">
+          <label>Minute Hand Scale: <span id="val-min-scale">0.395</span></label>
+          <input type="range" id="slider-min-scale" min="0.25" max="0.50" step="0.002" value="0.395">
+        </div>
+      </div>
+
+      <!-- Section: Date Window (3h) -->
+      <div class="control-group">
+        <h4>5. Date Window (3h, Yellow Box & Radius Curvature)</h4>
+        <div class="slider-row">
+          <label>Date Window X (%): <span id="val-date-x">77.83%</span></label>
+          <input type="range" id="slider-date-x" min="70" max="84" step="0.01" value="77.83">
+        </div>
+        <div class="slider-row">
+          <label>Date Window Y (%): <span id="val-date-y">49.90%</span></label>
+          <input type="range" id="slider-date-y" min="44" max="56" step="0.01" value="49.90">
+        </div>
+        <div class="slider-row">
+          <label>Date Radius Arc (°): <span id="val-date-arc">8.5°</span></label>
+          <input type="range" id="slider-date-arc" min="0" max="18" step="0.5" value="8.5">
+        </div>
+      </div>
+
+      <!-- Section: 3D Motion (Speed & Kinetic Drift) -->
+      <div class="control-group">
+        <h4>6. Kinetic Motion Factor</h4>
+        <div class="slider-row">
+          <label>Movement Speed Factor: <span id="val-motion-speed">1.2x</span></label>
+          <input type="range" id="slider-motion-speed" min="0.3" max="3.0" step="0.1" value="1.2">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="drawer-actions">
+        <button class="drawer-btn primary" id="copy-json-btn">Copy Config JSON</button>
+        <button class="drawer-btn" id="reset-calib-btn">Reset Defaults</button>
+      </div>
+    </div>
+  </aside>
+
+  <script src="particles.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

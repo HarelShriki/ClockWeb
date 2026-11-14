@@ -1,0 +1,709 @@
+/* ==========================================================================
+   Casio G-Shock GAC-2500 Screensaver & Multi-Model Clock Stylesheet
+   Pure Analog Timepiece - Natural Watch Case (NO Circular Crop)
+   Auto-Fading Screensaver HUD & Real-time Center Calibration
+   ========================================================================== */
+
+:root {
+  --bg-dark: #080a0d;
+  --bg-card: rgba(16, 20, 26, 0.85);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --accent-gshock: #38de7e;
+  --accent-cyan: #00f0ff;
+  --accent-red: #ff3344;
+  --accent-gold: #ffd700;
+  --text-main: #f0f4f8;
+  --text-dim: #8b96a5;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  /* Watch Display Size: Scaled responsively to screen */
+  --watch-size: min(84vmin, 680px);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background Atmosphere */
+.app-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  z-index: 1;
+}
+
+/* Particle Canvas Layer */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Screensaver Auto-Fade --- */
+.auto-fade {
+  transition: opacity 0.5s cubic-bezier(0.2, 0, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.user-idle:not(.calibrating-active) .auto-fade {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
+body.user-idle:not(.calibrating-active) .hud-bar.auto-fade {
+  transform: translate(-50%, 8px);
+}
+
+/* --- Top Header Navigation --- */
+.header-bar {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  max-width: calc(100vw - 3rem);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 60;
+  flex-wrap: wrap;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.gshock-logo {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  background: linear-gradient(135deg, #ffffff 0%, #a4b0c0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.model-select-wrapper {
+  position: relative;
+}
+
+.model-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(56, 222, 126, 0.12);
+  border: 1px solid rgba(56, 222, 126, 0.35);
+  color: var(--accent-gshock);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 1.6rem 0.3rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2338de7e' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+}
+
+.view-toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(18, 24, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 0.25rem 0.35rem;
+}
+
+.pill-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.pill-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pill-btn.active {
+  background: rgba(56, 222, 126, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(56, 222, 126, 0.4);
+}
+
+.pill-btn.icon-only {
+  padding: 0.45rem;
+  width: 32px;
+  height: 32px;
+  justify-content: center;
+}
+
+.pill-btn .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: background 0.2s ease;
+}
+
+.pill-btn.active .dot {
+  background: var(--accent-gshock);
+  box-shadow: 0 0 6px var(--accent-gshock);
+}
+
+/* V Checkmark Checkbox for Motion and Feature Toggles */
+.v-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+  transition: all 0.2s ease;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  color: transparent;
+}
+
+.pill-btn.active .v-checkbox {
+  background: var(--accent-gshock);
+  border-color: var(--accent-gshock);
+  color: #080a0d;
+}
+
+.pill-btn .v-checkbox::after {
+  content: '✓';
+  display: block;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.15s ease;
+}
+
+.pill-btn.active .v-checkbox::after {
+  opacity: 1;
+  transform: scale(1);
+  color: #080a0d;
+}
+
+.pill-btn.calibrate-btn {
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+.pill-btn.calibrate-btn:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: rgba(0, 240, 255, 0.45);
+}
+
+.pill-btn.calibrate-btn.active {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+/* --- Speed Segmented Bars Control --- */
+.speed-bars-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(18, 24, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.speed-bars-control:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.speed-bars-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.speed-bars-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+  padding: 1px 0;
+}
+
+.speed-bar {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+  transition: background 0.15s ease, box-shadow 0.15s ease, height 0.15s ease;
+  cursor: pointer;
+}
+
+.speed-bar[data-level="1"] { height: 6px; }
+.speed-bar[data-level="2"] { height: 9px; }
+.speed-bar[data-level="3"] { height: 12px; }
+.speed-bar[data-level="4"] { height: 15px; }
+
+.speed-bar.active {
+  background: var(--accent-gshock);
+  box-shadow: 0 0 5px rgba(56, 222, 126, 0.6);
+}
+
+.speed-val-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-gshock);
+  min-width: 2.2rem;
+  text-align: right;
+}
+
+/* --- Main Screensaver Watch Stage --- */
+.screensaver-stage {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  perspective: 1200px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Watch Frame: NATURAL WATCH CASE (NO circular cutting crop!) */
+.watch-frame {
+  position: relative;
+  aspect-ratio: var(--watch-aspect, 1 / 1);
+  width: var(--watch-w, 98vmin);
+  height: var(--watch-h, 98vmin);
+  max-width: none;
+  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* NO border-radius: 50%! Full rectangular watch case visible */
+  border-radius: 0;
+  overflow: visible;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: auto;
+}
+
+/* Watch Dial Surface (1024x1024 coordinate system mapped to 100%) */
+.watch-surface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  /* Soft ambient drop shadow around the full watch case */
+  filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.85));
+}
+
+/* Dial Layer Images */
+.dial-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 2;
+  display: none;
+}
+
+.dial-layer.active {
+  display: block;
+}
+
+/* Date Window Aperture (3 O'clock, with circular date ring curvature radius) */
+.date-window {
+  position: absolute;
+  left: 77.83%;
+  top: 49.90%;
+  transform: translate(-50%, -50%);
+  width: 5.37%;
+  height: 12.60%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+  z-index: 8;
+  pointer-events: none;
+  user-select: none;
+  overflow: visible; /* allows circular radius tilt to render without clipping */
+}
+
+.date-window .date-num {
+  font-family: 'DIN Alternate', 'Trebuchet MS', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-size: calc(var(--watch-render-w, var(--watch-size)) * (26 / 1024));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 33.33%;
+  width: 100%;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Day Before: Curves along circular date wheel radius (inward shift + counter-clockwise rotation) */
+.date-window .date-prev {
+  color: #c8c8c5;
+  font-weight: 700;
+  opacity: 0.72;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  transform: translateX(var(--date-curve-shift, -4.5px)) rotate(calc(-1 * var(--date-curve-angle, 8.5deg)));
+  transform-origin: 85% center;
+}
+
+/* Today: Apex of the circular date wheel arc */
+.date-window .date-curr {
+  color: #f5f5f3;
+  font-weight: 800;
+  opacity: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  transform: translateX(0px) rotate(0deg);
+  transform-origin: center center;
+}
+
+/* Day After: Curves along circular date wheel radius (inward shift + clockwise rotation) */
+.date-window .date-next {
+  color: #c8c8c5;
+  font-weight: 700;
+  opacity: 0.72;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  transform: translateX(var(--date-curve-shift, -4.5px)) rotate(var(--date-curve-angle, 8.5deg));
+  transform-origin: 85% center;
+}
+
+/* Small Seconds Subdial (9 O'clock, calibrated from map: x=31.45%, y=49.13%) */
+.subdial-anchor {
+  position: absolute;
+  left: 31.45%;
+  top: 49.13%;
+  width: 0;
+  height: 0;
+  z-index: 15;
+}
+
+.hand-second {
+  position: absolute;
+  filter: drop-shadow(1px 2px 3px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+  will-change: transform;
+  rotate: 0deg;
+  translate: 0 0;
+}
+
+/* Center Pinion Anchor (calibrated from map: x=50.10%, y=48.68%) */
+.main-pinion-anchor {
+  position: absolute;
+  left: 50.10%;
+  top: 48.68%;
+  width: 0;
+  height: 0;
+  z-index: 25;
+}
+
+.hand-hour {
+  position: absolute;
+  filter: drop-shadow(2px 5px 7px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+  will-change: transform;
+  z-index: 26;
+  rotate: 0deg;
+  translate: 0 0;
+}
+
+.hand-minute {
+  position: absolute;
+  filter: drop-shadow(3px 7px 10px rgba(0, 0, 0, 0.65));
+  pointer-events: none;
+  will-change: transform;
+  z-index: 28;
+  rotate: 0deg;
+  translate: 0 0;
+}
+
+/* Calibration Overlay SVG (Crosshairs & Guides) */
+.calibration-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.calibration-overlay.visible {
+  opacity: 1;
+}
+
+/* --- Bottom Screensaver HUD Bar --- */
+.hud-bar {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(16, 20, 26, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 0.4rem 1.4rem;
+  z-index: 60;
+  user-select: none;
+}
+
+.hud-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hud-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.hud-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hud-val.mono {
+  font-family: var(--font-mono);
+}
+
+.hud-chip.highlight .hud-val {
+  color: var(--accent-gshock);
+  font-size: 1.15rem;
+}
+
+/* --- Interactive Center Calibration Drawer --- */
+.calibration-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(380px, 92vw);
+  height: 100vh;
+  background: #11151c;
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.calibration-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.drawer-close:hover {
+  color: #ffffff;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.drawer-hint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.control-group {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.control-group h4 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.slider-row {
+  margin-bottom: 0.75rem;
+}
+
+.slider-row:last-child {
+  margin-bottom: 0;
+}
+
+.slider-row label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.slider-row label span {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.slider-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent-cyan);
+  cursor: pointer;
+}
+
+.drawer-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.drawer-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drawer-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.drawer-btn.primary {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: rgba(0, 240, 255, 0.4);
+  color: var(--accent-cyan);
+}
+
+.drawer-btn.primary:hover {
+  background: rgba(0, 240, 255, 0.28);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  :root {
+    --watch-size: min(92vmin, 460px);
+  }
+  .app-viewport {
+    padding: 0.75rem;
+  }
+  .header-bar {
+    justify-content: center;
+  }
+}
