@@ -172,8 +172,22 @@ class CasioWatchApp {
     this.calibrationDrawer = document.getElementById('calibration-drawer');
     this.calibrationOverlay = document.getElementById('calibration-overlay');
 
-    // Active Model & Config
-    this.activeModelKey = 'CASIO-GAC-2500-3A';
+    // Active Model & Config (Supports ?model= URL param & localStorage persistence)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramModel = urlParams.get('model');
+    let savedModel = null;
+    try {
+      savedModel = localStorage.getItem('casioActiveModelKey');
+    } catch (e) {}
+
+    if (paramModel && WATCH_MODELS[paramModel]) {
+      this.activeModelKey = paramModel;
+      try { localStorage.setItem('casioActiveModelKey', paramModel); } catch (e) {}
+    } else if (savedModel && WATCH_MODELS[savedModel]) {
+      this.activeModelKey = savedModel;
+    } else {
+      this.activeModelKey = 'CASIO-GAC-2500-3A';
+    }
     this.config = Object.assign({}, WATCH_MODELS[this.activeModelKey]);
 
     this.movementMode = 'quartz'; // 'quartz' or 'sweep'
@@ -218,7 +232,10 @@ class CasioWatchApp {
   }
 
   init() {
-    this.applyConfig();
+    if (this.modelSelector) {
+      this.modelSelector.value = this.activeModelKey;
+    }
+    this.switchModel(this.activeModelKey);
     this.bindEvents();
     this.bindCalibrationSliders();
     this.setupScreensaverIdle();
@@ -231,6 +248,20 @@ class CasioWatchApp {
     if (!WATCH_MODELS[modelKey]) return;
     this.activeModelKey = modelKey;
     this.config = Object.assign({}, WATCH_MODELS[modelKey]);
+
+    try {
+      localStorage.setItem('casioActiveModelKey', modelKey);
+    } catch (e) {}
+
+    if (this.modelSelector && this.modelSelector.value !== modelKey) {
+      this.modelSelector.value = modelKey;
+    }
+
+    if (window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({ type: 'CLOCKWEB_CASIO_MODEL_CHANGED', model: modelKey }, '*');
+      } catch (e) {}
+    }
 
     // Update Image Sources
     if (this.dialPngImg) this.dialPngImg.src = this.config.dialPng;
@@ -630,9 +661,18 @@ class CasioWatchApp {
 
   // --- Screensaver Auto-Fade System ---
   setupScreensaverIdle() {
+    let lastParentPing = 0;
     const resetIdle = () => {
       document.body.classList.remove('user-idle');
       clearTimeout(this.idleTimer);
+
+      const now = Date.now();
+      if (window.parent && window.parent !== window && now - lastParentPing > 350) {
+        lastParentPing = now;
+        try {
+          window.parent.postMessage({ type: 'CLOCKWEB_USER_ACTIVITY' }, '*');
+        } catch (e) {}
+      }
 
       if (!this.isCalibrating) {
         this.idleTimer = setTimeout(() => {
@@ -654,6 +694,26 @@ class CasioWatchApp {
     // Window Resize -> Recompute Responsive Watch Layout
     window.addEventListener('resize', () => {
       this.applyConfig();
+    });
+
+    // Main Clock Selector Link Integration
+    const openMainSelectorBtn = document.getElementById('open-main-selector');
+    if (openMainSelectorBtn) {
+      openMainSelectorBtn.addEventListener('click', (e) => {
+        if (window.parent && window.parent !== window) {
+          e.preventDefault();
+          try {
+            window.parent.postMessage({ type: 'CLOCKWEB_OPEN_SELECTOR' }, '*');
+          } catch (err) {}
+        }
+      });
+    }
+
+    // Listen for Parent Selector Commands
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'CLOCKWEB_SET_CASIO_MODEL' && e.data.model) {
+        this.switchModel(e.data.model);
+      }
     });
 
     // Model Selector Change

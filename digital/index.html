@@ -1090,6 +1090,7 @@ MINIMAL_SOURCE_END</script>
     </div>
   </main>
   <nav id="nav" aria-label="Clock actions">
+    <a class="icon-button" id="open-main-selector" href="../index.html?selector=1" aria-label="Open Main Clock Selector" title="Choose Clock (Main Selector)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></a>
     <a class="icon-button" id="open-settings" href="settings.html" target="minimal-settings" aria-label="Open settings" title="Settings (or double-click the clock)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></a>
     <button class="icon-button" id="fullscreen" type="button" aria-label="Enter fullscreen" title="Fullscreen (F)"><svg id="icon-enter-fullscreen" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg id="icon-exit-fullscreen" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
   </nav>
@@ -1495,13 +1496,39 @@ MINIMAL_SOURCE_END</script>
         } catch (error) { status(`Fullscreen unavailable: ${error.message}`); }
       }
       $("fullscreen").addEventListener("click", fullscreen);
-      let navAwake = false, navTimer = 0;
+      const mainSelectorBtn = $("open-main-selector");
+      if (mainSelectorBtn) {
+        mainSelectorBtn.addEventListener("click", (event) => {
+          if (window.parent && window.parent !== window) {
+            event.preventDefault();
+            try { window.parent.postMessage({ type: "CLOCKWEB_OPEN_SELECTOR" }, "*"); } catch {}
+          }
+        });
+      }
+      window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "CLOCKWEB_SET_DIGITAL_CONFIG" && event.data.config) {
+          try {
+            config = normalize(event.data.config);
+            localStorage.setItem(KEY, JSON.stringify(config));
+            status("");
+            apply();
+          } catch (error) {
+            status(`Settings update rejected: ${error.message}`);
+          }
+        }
+      });
+      let navAwake = false, navTimer = 0, lastParentPing = 0;
       function wakeNav(show = false) {
         const hide = config.navMode === "mouse" || (config.navMode === "auto" && Boolean(document.fullscreenElement));
         if (show) {
           navAwake = true;
           clearTimeout(navTimer);
           navTimer = setTimeout(() => { navAwake = false; wakeNav(); }, 2500);
+          const now = Date.now();
+          if (window.parent && window.parent !== window && now - lastParentPing > 350) {
+            lastParentPing = now;
+            try { window.parent.postMessage({ type: "CLOCKWEB_USER_ACTIVITY" }, "*"); } catch {}
+          }
         }
         $("nav").classList.toggle("idle", hide && !navAwake);
       }

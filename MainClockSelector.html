@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClockWeb — Main Clock Selector & Launcher</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    @layer base, theme, components, utilities;
+
+    @layer theme {
+      :root {
+        --bg-deep: #07090d;
+        --bg-panel: rgba(16, 21, 30, 0.88);
+        --bg-card: rgba(22, 28, 40, 0.78);
+        --bg-card-hover: rgba(30, 39, 56, 0.92);
+        --bg-glass: rgba(13, 17, 24, 0.82);
+        --border-subtle: rgba(255, 255, 255, 0.1);
+        --border-hover: rgba(255, 255, 255, 0.24);
+        --accent-green: #38de7e;
+        --accent-green-Soft: rgba(56, 222, 126, 0.16);
+        --accent-cyan: #00f0ff;
+        --accent-purple: #c084fc;
+        --accent-gold: #fbbf24;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --text-muted: #64748b;
+        --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --radius-pill: 9999px;
+        --shadow-elevated: 0 22px 50px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.07);
+      }
+    }
+
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: var(--bg-deep);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button, select, input {
+        font: inherit;
+        color: inherit;
+      }
+    }
+
+    @layer components {
+      /* Fullscreen Running Clock Stage */
+      .stage-container {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+        z-index: 1;
+        background: var(--bg-deep);
+      }
+
+      .clock-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+        background: var(--bg-deep);
+      }
+
+      /* Floating Auto-Hiding Quick Switcher Bar (Bottom-Left) */
+      .floating-switcher {
+        position: fixed;
+        inset-block-end: 1rem;
+        inset-inline-start: 1rem;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.35rem 0.5rem;
+        background: var(--bg-glass);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-pill);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+        transition: opacity 0.4s cubic-bezier(0.2, 0, 0.2, 1), transform 0.4s cubic-bezier(0.2, 0, 0.2, 1);
+      }
+
+      .floating-switcher.is-idle:not(:hover):not(:focus-within) {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+      }
+
+      /* Invisible corner wake zone so hovering bottom-left always wakes HUD */
+      .wake-hotzone {
+        position: fixed;
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        width: 240px;
+        height: 68px;
+        z-index: 39;
+      }
+
+      .hud-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.38rem 0.78rem;
+        border-radius: var(--radius-pill);
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+        white-space: nowrap;
+      }
+
+      .hud-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: var(--border-hover);
+      }
+
+      .hud-btn.accent {
+        background: var(--accent-green-Soft);
+        border-color: rgba(56, 222, 126, 0.4);
+        color: var(--accent-green);
+      }
+
+      .hud-btn.accent:hover:not(:disabled) {
+        background: rgba(56, 222, 126, 0.26);
+        color: #ffffff;
+      }
+
+      .hud-btn.is-saved {
+        background: rgba(56, 222, 126, 0.12);
+        border-color: rgba(56, 222, 126, 0.32);
+        color: var(--accent-green);
+      }
+
+      .hud-select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: rgba(255, 255, 255, 0.06);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2394a3b8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.6rem center;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-pill);
+        padding: 0.35rem 1.7rem 0.35rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        outline: none;
+        max-width: 230px;
+      }
+
+      .hud-select:hover, .hud-select:focus-visible {
+        border-color: rgba(56, 222, 126, 0.5);
+      }
+
+      .hud-select option {
+        background: #111621;
+        color: var(--text-primary);
+      }
+
+      /* Main Selector Overlay Modal */
+      .selector-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: radial-gradient(circle at 50% 0%, rgba(28, 42, 68, 0.58) 0%, rgba(5, 7, 11, 0.92) 75%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow-y: auto;
+        padding: clamp(1rem, 2.5vw, 2rem);
+        box-sizing: border-box;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+      }
+
+      .selector-backdrop[hidden] {
+        display: none !important;
+      }
+
+      .selector-shell {
+        width: min(1220px, 100%);
+        background: var(--bg-panel);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        box-shadow: var(--shadow-elevated);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin: auto 0;
+      }
+
+      /* Selector Top Header */
+      .selector-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.35rem 1.75rem;
+        border-block-end: 1px solid var(--border-subtle);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+      }
+
+      .brand-title-group {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+      }
+
+      .brand-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(56, 222, 126, 0.2), rgba(0, 240, 255, 0.15));
+        border: 1px solid rgba(56, 222, 126, 0.4);
+        display: grid;
+        place-items: center;
+        color: var(--accent-green);
+        flex-shrink: 0;
+      }
+
+      .brand-text h1 {
+        margin: 0;
+        font-size: clamp(1.15rem, 2vw, 1.45rem);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .brand-text p {
+        margin: 0.2rem 0 0;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+      }
+
+      .live-mini-clock {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        padding: 0.4rem 0.85rem;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+      }
+
+      .live-mini-time {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--accent-green);
+        letter-spacing: 0.04em;
+      }
+
+      .live-mini-date {
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+      }
+
+      .close-selector-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.95rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-primary);
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .close-selector-btn:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: var(--border-hover);
+      }
+
+      /* Saved Status & Controls Bar */
+      .selector-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.95rem 1.75rem;
+        background: rgba(9, 13, 20, 0.65);
+        border-block-end: 1px solid var(--border-subtle);
+      }
+
+      .filter-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-tab {
+        padding: 0.42rem 0.9rem;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .filter-tab:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .filter-tab.active {
+        background: var(--accent-green-Soft);
+        border-color: rgba(56, 222, 126, 0.45);
+        color: var(--accent-green);
+      }
+
+      .saved-status-group {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+      }
+
+      .saved-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.38rem 0.85rem;
+        border-radius: var(--radius-pill);
+        background: rgba(56, 222, 126, 0.1);
+        border: 1px solid rgba(56, 222, 126, 0.3);
+        font-size: 0.8rem;
+        color: var(--text-primary);
+      }
+
+      .saved-pill .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-green);
+        box-shadow: 0 0 8px var(--accent-green);
+      }
+
+      .saved-pill strong {
+        color: var(--accent-green);
+      }
+
+      .auto-launch-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .auto-launch-label:has(:checked) {
+        color: var(--text-primary);
+      }
+
+      .auto-launch-label input {
+        accent-color: var(--accent-green);
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+      }
+
+      /* Clock Cards Grid */
+      .clocks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        gap: 1.15rem;
+        padding: 1.5rem 1.75rem;
+      }
+
+      .clock-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-card);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+        cursor: pointer;
+      }
+
+      .clock-card:hover {
+        transform: translateY(-3px);
+        background: var(--bg-card-hover);
+        border-color: var(--border-hover);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+      }
+
+      .clock-card.is-selected {
+        border-color: var(--accent-cyan);
+        box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.22), 0 16px 36px rgba(0, 0, 0, 0.5);
+      }
+
+      .clock-card.is-saved-default {
+        border-color: var(--accent-green);
+      }
+
+      .clock-card.is-selected.is-saved-default {
+        border-color: var(--accent-green);
+        box-shadow: 0 0 0 2px rgba(56, 222, 126, 0.28), 0 16px 36px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Card Visual Preview Stage */
+      .card-preview {
+        position: relative;
+        height: 185px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #161f2e 0%, #090c12 100%);
+        border-block-end: 1px solid var(--border-subtle);
+        padding: 0.75rem;
+      }
+
+      .card-preview img.analog-preview-img {
+        max-height: 158px;
+        max-width: 90%;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.75));
+        transition: transform 0.3s ease;
+      }
+
+      .clock-card:hover .card-preview img.analog-preview-img {
+        transform: scale(1.05);
+      }
+
+      /* Digital Clock Live Preview inside Card */
+      .digital-preview-box {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem;
+        text-align: center;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+      }
+
+      .digital-preview-time {
+        font-size: 1.85rem;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-block-end: 0.35rem;
+      }
+
+      .digital-preview-time.font-arcade {
+        font-family: "Press Start 2P", monospace;
+        font-size: 1.35rem;
+        text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+      }
+
+      .digital-preview-date {
+        font-size: 0.78rem;
+        opacity: 0.9;
+        font-weight: 600;
+      }
+
+      .digital-preview-hebrew {
+        font-size: 0.75rem;
+        opacity: 0.85;
+        margin-block-start: 0.2rem;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      /* Badges on Card Preview */
+      .card-badges {
+        position: absolute;
+        inset-block-start: 0.65rem;
+        inset-inline: 0.65rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+        gap: 0.4rem;
+      }
+
+      .category-tag {
+        padding: 0.22rem 0.6rem;
+        border-radius: var(--radius-pill);
+        background: rgba(9, 13, 20, 0.78);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-primary);
+      }
+
+      .status-badges {
+        display: flex;
+        gap: 0.35rem;
+      }
+
+      .saved-badge {
+        padding: 0.22rem 0.6rem;
+        border-radius: var(--radius-pill);
+        background: rgba(56, 222, 126, 0.22);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(56, 222, 126, 0.6);
+        color: var(--accent-green);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .running-badge {
+        padding: 0.22rem 0.6rem;
+        border-radius: var(--radius-pill);
+        background: rgba(0, 240, 255, 0.2);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(0, 240, 255, 0.55);
+        color: var(--accent-cyan);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      /* Card Content */
+      .card-body {
+        padding: 1rem 1.15rem 1.15rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: space-between;
+        gap: 0.9rem;
+      }
+
+      .card-title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.3;
+      }
+
+      .card-subbadge {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .card-desc {
+        margin: 0.35rem 0 0;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+
+      /* Card Action Buttons */
+      .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-block-start: auto;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.52rem 0.85rem;
+        border-radius: var(--radius-md);
+        font-size: 0.8rem;
+        font-weight: 700;
+        border: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.18s ease;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: var(--border-hover);
+      }
+
+      .btn.primary {
+        flex: 1;
+        background: linear-gradient(135deg, rgba(56, 222, 126, 0.24), rgba(16, 185, 129, 0.16));
+        border-color: rgba(56, 222, 126, 0.5);
+        color: var(--accent-green);
+      }
+
+      .btn.primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, rgba(56, 222, 126, 0.38), rgba(16, 185, 129, 0.28));
+        border-color: var(--accent-green);
+        color: #ffffff;
+      }
+
+      /* Selector Footer Bar */
+      .selector-footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.1rem 1.75rem;
+        background: rgba(8, 11, 17, 0.85);
+        border-block-start: 1px solid var(--border-subtle);
+      }
+
+      .footer-selection-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+      }
+
+      .footer-selection-info strong {
+        color: var(--text-primary);
+      }
+
+      .footer-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .btn-lg {
+        padding: 0.62rem 1.15rem;
+        font-size: 0.85rem;
+      }
+
+      /* Toast Notification */
+      .toast-banner {
+        position: fixed;
+        inset-block-start: 1.25rem;
+        inset-inline-end: 1.25rem;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.7rem 1.15rem;
+        border-radius: var(--radius-md);
+        background: rgba(16, 24, 34, 0.95);
+        border: 1px solid var(--accent-green);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        color: var(--text-primary);
+        font-size: 0.84rem;
+        font-weight: 600;
+        transform: translateY(-16px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+
+      .toast-banner.visible {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      @media (max-width: 680px) {
+        .selector-header, .selector-toolbar, .clocks-grid, .selector-footer {
+          padding-inline: 1rem;
+        }
+        .clocks-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full-Viewport Stage where the selected clock runs -->
+  <div class="stage-container" id="stage-container">
+    <iframe
+      id="clock-iframe"
+      class="clock-iframe"
+      title="Active Clock View"
+      allow="fullscreen; autoplay"
+    ></iframe>
+  </div>
+
+  <!-- Corner Wake Zone & Floating Auto-Hiding Quick Switcher Bar -->
+  <div class="wake-hotzone" id="wake-hotzone" aria-hidden="true"></div>
+  <aside class="floating-switcher" id="floating-switcher" aria-label="Quick Clock Switcher">
+    <button type="button" class="hud-btn accent" id="open-selector-btn" title="Open Main Clock Selector (Shortcut: M)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+      <span>Clocks</span>
+    </button>
+
+    <select id="quick-clock-select" class="hud-select" title="Quick Switch Active Clock"></select>
+
+    <button type="button" class="hud-btn" id="quick-save-btn" title="Save current clock as startup default">
+      <span id="quick-save-text">★ Save Default</span>
+    </button>
+
+    <button type="button" class="hud-btn" id="quick-fullscreen-btn" title="Toggle Fullscreen">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- Main Clock Selector Modal Hub -->
+  <div class="selector-backdrop" id="selector-backdrop" role="dialog" aria-modal="true" aria-labelledby="selector-title">
+    <div class="selector-shell">
+      <!-- Top Header -->
+      <header class="selector-header">
+        <div class="brand-title-group">
+          <div class="brand-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1 id="selector-title">ClockWeb — Main Clock Selector</h1>
+            <p>Choose which clock face or preset to run and save it as your default</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="live-mini-clock">
+            <span class="live-mini-time" id="header-live-time">--:--:--</span>
+            <span class="live-mini-date" id="header-live-date">---</span>
+          </div>
+          <button type="button" class="close-selector-btn" id="close-selector-btn" title="Return to running clock (Esc)">
+            <span>Resume Clock</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Filter Tabs & Saved Startup Status -->
+      <div class="selector-toolbar">
+        <div class="filter-tabs" role="tablist" aria-label="Filter Clocks">
+          <button type="button" class="filter-tab active" data-filter="all">All Clocks (7)</button>
+          <button type="button" class="filter-tab" data-filter="casio">Casio G-Shock Analog (3)</button>
+          <button type="button" class="filter-tab" data-filter="digital">Digital & Presets (4)</button>
+        </div>
+
+        <div class="saved-status-group">
+          <div class="saved-pill" title="This clock is saved in localStorage and runs automatically">
+            <span class="dot"></span>
+            <span>Saved Default: <strong id="saved-clock-label">None</strong></span>
+          </div>
+
+          <label class="auto-launch-label" title="When enabled, opening index.html immediately runs your saved default clock">
+            <input type="checkbox" id="auto-launch-checkbox" checked>
+            <span>Auto-run saved clock on startup</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="clocks-grid" id="clocks-grid"></div>
+
+      <!-- Bottom Action Footer -->
+      <footer class="selector-footer">
+        <div class="footer-selection-info">
+          <span>Selected: <strong id="selected-clock-label">---</strong></span>
+        </div>
+
+        <div class="footer-actions">
+          <a href="digital/settings.html" target="_blank" class="btn btn-lg" title="Open Digital Clock Settings Editor">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>
+            </svg>
+            <span>Digital Settings</span>
+          </a>
+          <button type="button" class="btn btn-lg" id="open-standalone-btn" title="Navigate directly to the selected clock's standalone HTML page">
+            <span>Open Direct Page ↗</span>
+          </button>
+          <button type="button" class="btn btn-lg" id="save-only-btn" title="Save selected clock as default without closing selector">
+            <span>★ Save as Default</span>
+          </button>
+          <button type="button" class="btn btn-lg" id="run-only-btn" title="Run selected clock now">
+            <span>▶ Run Selected</span>
+          </button>
+          <button type="button" class="btn btn-lg primary" id="save-and-run-btn" title="Save selected clock as default and run it now">
+            <span>★ Save &amp; Run Clock</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Confirmation Toast -->
+  <div class="toast-banner" id="toast-banner" role="status" aria-live="polite">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38de7e" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span id="toast-text">Saved default clock!</span>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEYS = {
+        SAVED_CLOCK_ID: "clockweb_saved_clock_id_v1",
+        AUTO_LAUNCH: "clockweb_auto_launch_v1",
+        CASIO_MODEL: "casioActiveModelKey",
+        DIGITAL_CONFIG: "webclockMinimalConfig",
+        DIGITAL_SAVED_DESIGNS: "webclockSavedDesigns"
+      };
+
+      const SUN_LOGO_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAMAAADDpiTIAAAAA3NCSVQICAjb4U/gAAAACXBIWXMAABJOAAASTgFeLuXKAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAwBQTFRF////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACyO34QAAAP90Uk5TAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+6wjZNQAAEr5JREFUGBntwQuAlXPCBvDnTDNNM0nToMtUVKjWLV2XKLm1omjXkkiKYoslJPXJWiEVfcWu3fWVTa1ErFst0WXKXdJlaVOxuUycatKhmpnm9nx23Wbm/b/n8p733N7z/H4QERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERFPOmbog2++8cDlHSHp6LCn+b3H8yFp58Kd/NGX50PSzCWsZSAkrTQvZi07DoWkk+dZx5OQNNKDFidA0sd1tBgBSR+P0uIvkPTxAS3WQNLHHlp8CUkfAVr4IekjQAs/JH0EaOGHpI8ALfyQ9BGghR+SPgK08EPSR4AWfkhya3jm75cuvv+qLnBBgBZ+uKDLiPv/8crvzsiFuC1ragW/81QrRC1ACz+i1uopfqdiSibEVW3f5o/23oRoBWjhR7Ru2ssfvXk4xEU9AqzpKkQpQAs/ojSSNX3VGeKaeutZy/4OiE6AFn5E59gS1rI6A+KWG1jHumxEJUALP6KS8wHruAbikkO+Zl2jEZUALfyIyk2s66vGEHecQ4t/10M0ArTwIxpZn9OiD8QdN9LqEkQjQAs/ojGMVqMg7niYVusQjQAt/IiCbyOtHoS44wUa9EUUArTwIwoDaLAQ4o7babAcUQjQwo8ovE6DWyHuOI0m3eBcgBZ+ONeTJqdA3NGgjAZPwbkALfxw7nkalGVDXLKIBlVHwbEALfxw7GfVNFgEcctpNHkYjgVo4Ydjf6XJaRDXvE2DsmZwKkALP5xqeYAGb0Pc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";
+
+      const DIGITAL_BASE_PRESET = {
+        version: 1,
+        is12Hour: false,
+        showSeconds: false,
+        blinkColon: false,
+        jewishScale: 1.4,
+        sunIconScale: 0.9,
+        showDate: true,
+        dateFormat: "DD/MM/YY ddd | W",
+        position: "center",
+        bgImage: "",
+        city: "jerusalem",
+        timeZone: "Asia/Jerusalem",
+        region: "israel",
+        hebrewLanguage: "both",
+        showHebrew: true,
+        showSun: true,
+        showHoliday: true,
+        showParashah: true,
+        showWeek: false,
+        weekFormat: "WW",
+        weekStartsOn: "sunday",
+        sunEvent: "next",
+        sunIcon: "emoji",
+        sunIconSide: "right",
+        sunSide: "left",
+        parashahFormat: "prefix",
+        shabbatFormat: "he",
+        parashahPattern: "פרשת {name}",
+        shabbatPattern: "כניסה {in} יציאה {out}",
+        sunIconMono: true,
+        sunLogo: SUN_LOGO_URI,
+        dateFont: "calibri",
+        hebrewFont: "calibri",
+        jewishFont: "calibri",
+        retroSettingsTheme: false,
+        navMode: "auto",
+        clockFace: "full",
+        slowDrift: false,
+        textShadow: "retro",
+        hebrewDateFormat: "HW - HD HB",
+        layoutRevision: 2,
+        parashahSun: false,
+        parashahMon: true,
+        parashahTue: false,
+        parashahWed: true,
+        parashahThu: true,
+        parashahFri: true,
+        parashahSat: true,
+        hebrewGap: 6,
+        sunGap: 22,
+        fitScreen: true,
+        gradientEnabled: true,
+        gradientAngle: 50,
+        panelGregorian: false,
+        panelHebrew: false,
+        panelSun: false,
+        panelWeek: false,
+        panelParashah: true,
+        panelOpacity: 100,
+        note1Text: "", note1Hide: false, note1Sun: false, note1Mon: false, note1Tue: false, note1Wed: false, note1Thu: false, note1Fri: false, note1Sat: false,
+        note2Text: "", note2Hide: false, note2Sun: false, note2Mon: false, note2Tue: false, note2Wed: false, note2Thu: false, note2Fri: false, note2Sat: false,
+        timeCustom: false, timeColor: "#000000", timeBold: true, shadow_time: true,
+        dateCustom: false, dateColor: "#000000", dateBold: true, shadow_date: false,
+        hebrewCustom: false, hebrewColor: "#101010", hebrewBold: true, shadow_hebrew: false,
+        sunCustom: false, sunColor: "#101010", sunBold: false, shadow_sun: false,
+        weekCustom: false, weekColor: "#101010", weekBold: false, shadow_week: false,
+        parashahCustom: false, parashahColor: "#101010", parashahBold: false, shadow_parashah: false,
+        shabbatCustom: false, shabbatColor: "#101010", shabbatBold: false, shadow_shabbat: false,
+        holidayCustom: false, holidayColor: "#101010", holidayBold: false, shadow_holiday: false,
+        noteCustom: false, noteColor: "#101010", noteBold: false, shadow_note: false
+      };
+
+      const DIGITAL_PRESETS = {
+        "defult-1": {
+          ...DIGITAL_BASE_PRESET,
+          scale: 1.35,
+          bgColor: "#444141",
+          fontColor: "#3b424f",
+          clockFont: "arcade",
+          motion: "sway",
+          dateScale: 1.2,
+          hebrewScale: 1.2,
+          dateGap: 36,
+          topGap: 340,
+          centerClock: true,
+          screenPadding: 30,
+          gradientStart: "#aa51c2",
+          gradientEnd: "#b09bbb"
+        },
+        "defult-2": {
+          ...DIGITAL_BASE_PRESET,
+          scale: 1.35,
+          bgColor: "#444141",
+          fontColor: "#3b424f",
+          clockFont: "arcade",
+          motion: "sway",
+          dateScale: 1.2,
+          hebrewScale: 1.2,
+          dateGap: 36,
+          topGap: 340,
+          centerClock: true,
+          screenPadding: 30,
+          gradientStart: "#000000",
+          gradientEnd: "#635b67"
+        },
+        "defult-3": {
+          ...DIGITAL_BASE_PRESET,
+          scale: 1.4,
+          bgColor: "#000000",
+          fontColor: "#d8dce4",
+          clockFont: "calibri",
+          motion: "none",
+          dateScale: 1.05,
+          hebrewScale: 1.05,
+          dateGap: 6,
+          topGap: 360,
+          centerClock: false,
+          screenPadding: 38,
+          gradientStart: "#000000",
+          gradientEnd: "#4a494b"
+        }
+      };
+
+      // Seed the 3 saved designs into webclockSavedDesigns if none exist yet
+      function ensureSavedDigitalDesigns() {
+        try {
+          const existing = localStorage.getItem(STORAGE_KEYS.DIGITAL_SAVED_DESIGNS);
+          if (!existing) {
+            const payload = {
+              version: 1,
+              items: [
+                { id: "d_1762105291532_a00178", name: "defult-1", savedAt: "2026-11-02T17:41:31.532Z", config: DIGITAL_PRESETS["defult-1"] },
+                { id: "d_1763150753751_828f07", name: "defult-2", savedAt: "2026-11-14T20:05:53.751Z", config: DIGITAL_PRESETS["defult-2"] },
+                { id: "d_1763152214635_def003", name: "defult-3", savedAt: "2026-11-14T20:30:14.635Z", config: DIGITAL_PRESETS["defult-3"] }
+              ]
+            };
+            localStorage.setItem(STORAGE_KEYS.DIGITAL_SAVED_DESIGNS, JSON.stringify(payload));
+          }
+        } catch (e) {}
+      }
+
+      const CLOCK_REGISTRY = [
+        {
+          id: "casio-gac-2500-3a",
+          name: "Casio G-Shock GAC-2500-3A (Green Resin)",
+          shortName: "Casio Green Resin",
+          category: "casio",
+          categoryLabel: "Casio Analog",
+          badge: "Green Resin",
+          description: "Authentic dark green resin octagonal case with 3-day circular date wheel, 9h seconds subdial & tactical green particle web.",
+          url: "CASIO/index.html?model=CASIO-GAC-2500-3A",
+          casioModel: "CASIO-GAC-2500-3A",
+          previewImg: "CASIO/Watch/CASIO-GAC-2500-3A/png/clock clean.png"
+        },
+        {
+          id: "casio-vector-bw-strap",
+          name: "Casio G-Shock Vector BW (With Strap)",
+          shortName: "Casio Vector BW (Strap)",
+          category: "casio",
+          categoryLabel: "Casio Analog",
+          badge: "Full Strap",
+          description: "Full 1088×1552 monochrome vector case with resin strap, curved 3-day date aperture & silver particle background.",
+          url: "CASIO/index.html?model=CASIO-GAC-2500-3A-VECTOR-BW-STRAP",
+          casioModel: "CASIO-GAC-2500-3A-VECTOR-BW-STRAP",
+          previewImg: "CASIO/Watch/CASIO-GAC-2500-3A - VECTOR BW/png/clock clean 1.png"
+        },
+        {
+          id: "casio-vector-bw-dial",
+          name: "Casio G-Shock Vector BW (Dial Only)",
+          shortName: "Casio Vector BW (Dial)",
+          category: "casio",
+          categoryLabel: "Casio Analog",
+          badge: "Wide Dial",
+          description: "Wide 1072×963 high-contrast monochrome dial-only presentation for maximum edge-to-edge screen coverage.",
+          url: "CASIO/index.html?model=CASIO-GAC-2500-3A-VECTOR-BW-DIAL",
+          casioModel: "CASIO-GAC-2500-3A-VECTOR-BW-DIAL",
+          previewImg: "CASIO/Watch/CASIO-GAC-2500-3A - VECTOR BW/png/clock clean 2.png"
+        },
+        {
+          id: "digital-defult-3",
+          name: "Digital Clock — Clean Dark (defult-3)",
+          shortName: "Digital: Clean Dark (defult-3)",
+          category: "digital",
+          categoryLabel: "Digital Preset",
+          badge: "defult-3.json",
+          description: "Clean Calibri typography on a dark charcoal gradient (#000000 → #4a494b) with Hebrew date, Parashah, Shabbat & sun times.",
+          url: "digital/index.html",
+          digitalPreset: "defult-3",
+          previewStyle: "background: linear-gradient(50deg, #000000, #4a494b); color: #d8dce4;",
+          previewFontClass: ""
+        },
+        {
+          id: "digital-defult-1",
+          name: "Digital Clock — Arcade Purple (defult-1)",
+          shortName: "Digital: Arcade Purple (defult-1)",
+          category: "digital",
+          categoryLabel: "Digital Preset",
+          badge: "defult-1.json",
+          description: "Retro 8-bit Arcade font with purple gradient (#aa51c2 → #b09bbb), 3D gentle sway motion, Hebrew date & Shabbat HUD.",
+          url: "digital/index.html",
+          digitalPreset: "defult-1",
+          previewStyle: "background: linear-gradient(50deg, #aa51c2, #b09bbb); color: #3b424f;",
+          previewFontClass: "font-arcade"
+        },
+        {
+          id: "digital-defult-2",
+          name: "Digital Clock — Arcade Dark (defult-2)",
+          shortName: "Digital: Arcade Dark (defult-2)",
+          category: "digital",
+          categoryLabel: "Digital Preset",
+          badge: "defult-2.json",
+          description: "Retro 8-bit Arcade font with dark obsidian-plum gradient (#000000 → #635b67), 3D sway motion, Hebrew date & Shabbat HUD.",
+          url: "digital/index.html",
+          digitalPreset: "defult-2",
+          previewStyle: "background: linear-gradient(50deg, #000000, #635b67); color: #3b424f;",
+          previewFontClass: "font-arcade"
+        },
+        {
+          id: "digital-custom",
+          name: "Digital Clock (Current / Custom Settings)",
+          shortName: "Digital: Custom Settings",
+          category: "digital",
+          categoryLabel: "Digital Custom",
+          badge: "Custom",
+          description: "Runs the Digital Webclock with your current customized settings from digital/settings.html without overwriting them.",
+          url: "digital/index.html",
+          digitalPreset: null,
+          previewStyle: "background: linear-gradient(135deg, #0f172a, #1e293b); color: #f8fafc;",
+          previewFontClass: ""
+        }
+      ];
+
+      // DOM References
+      const clockIframe = document.getElementById("clock-iframe");
+      const selectorBackdrop = document.getElementById("selector-backdrop");
+      const clocksGrid = document.getElementById("clocks-grid");
+      const savedClockLabel = document.getElementById("saved-clock-label");
+      const selectedClockLabel = document.getElementById("selected-clock-label");
+      const autoLaunchCheckbox = document.getElementById("auto-launch-checkbox");
+      const quickClockSelect = document.getElementById("quick-clock-select");
+      const quickSaveBtn = document.getElementById("quick-save-btn");
+      const quickSaveText = document.getElementById("quick-save-text");
+      const floatingSwitcher = document.getElementById("floating-switcher");
+      const toastBanner = document.getElementById("toast-banner");
+      const toastText = document.getElementById("toast-text");
+
+      // State
+      let savedClockId = null;
+      let runningClockId = null;
+      let selectedClockId = null;
+      let activeFilter = "all";
+      let idleTimer = null;
+      let toastTimer = null;
+
+      function getClockById(id) {
+        return CLOCK_REGISTRY.find((c) => c.id === id) || null;
+      }
+
+      function loadSavedPreferences() {
+        ensureSavedDigitalDesigns();
+        try {
+          const rawSaved = localStorage.getItem(STORAGE_KEYS.SAVED_CLOCK_ID);
+          if (rawSaved && getClockById(rawSaved)) {
+            savedClockId = rawSaved;
+          }
+          const rawAuto = localStorage.getItem(STORAGE_KEYS.AUTO_LAUNCH);
+          autoLaunchCheckbox.checked = rawAuto === null ? true : rawAuto === "true";
+        } catch (e) {
+          autoLaunchCheckbox.checked = true;
+        }
+      }
+
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toastBanner.classList.add("visible");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toastBanner.classList.remove("visible");
+        }, 2600);
+      }
+
+      function applyClockEnvironment(clockItem) {
+        if (!clockItem) return;
+        try {
+          if (clockItem.casioModel) {
+            localStorage.setItem(STORAGE_KEYS.CASIO_MODEL, clockItem.casioModel);
+          } else if (clockItem.digitalPreset && DIGITAL_PRESETS[clockItem.digitalPreset]) {
+            localStorage.setItem(
+              STORAGE_KEYS.DIGITAL_CONFIG,
+              JSON.stringify(DIGITAL_PRESETS[clockItem.digitalPreset])
+            );
+          }
+        } catch (e) {}
+      }
+
+      function saveClockAsDefault(clockId, notify = true) {
+        const clockItem = getClockById(clockId);
+        if (!clockItem) return;
+        savedClockId = clockItem.id;
+        try {
+          localStorage.setItem(STORAGE_KEYS.SAVED_CLOCK_ID, clockItem.id);
+        } catch (e) {}
+        applyClockEnvironment(clockItem);
+        updateUIState();
+        if (notify) {
+          showToast(`Saved "${clockItem.shortName}" as default clock!`);
+        }
+      }
+
+      function runClock(clockId, closeSelector = true) {
+        const clockItem = getClockById(clockId);
+        if (!clockItem) return;
+
+        selectedClockId = clockItem.id;
+        const previousClock = getClockById(runningClockId);
+        runningClockId = clockItem.id;
+
+        applyClockEnvironment(clockItem);
+
+        // Check if we can hot-switch inside the already loaded iframe for zero-flicker transitions
+        const currentSrc = clockIframe.getAttribute("src") || "";
+        if (
+          clockItem.casioModel &&
+          previousClock &&
+          previousClock.category === "casio" &&
+          currentSrc.startsWith("CASIO/index.html") &&
+          clockIframe.contentWindow
+        ) {
+          try {
+            clockIframe.contentWindow.postMessage(
+              { type: "CLOCKWEB_SET_CASIO_MODEL", model: clockItem.casioModel },
+              "*"
+            );
+          } catch (e) {
+            clockIframe.src = clockItem.url;
+          }
+        } else if (
+          clockItem.category === "digital" &&
+          previousClock &&
+          previousClock.category === "digital" &&
+          currentSrc.startsWith("digital/index.html") &&
+          clockIframe.contentWindow &&
+          clockItem.digitalPreset &&
+          DIGITAL_PRESETS[clockItem.digitalPreset]
+        ) {
+          try {
+            clockIframe.contentWindow.postMessage(
+              { type: "CLOCKWEB_SET_DIGITAL_CONFIG", config: DIGITAL_PRESETS[clockItem.digitalPreset] },
+              "*"
+            );
+          } catch (e) {
+            clockIframe.src = clockItem.url;
+          }
+        } else {
+          clockIframe.src = clockItem.url;
+        }
+
+        if (closeSelector) {
+          selectorBackdrop.hidden = true;
+          wakeFloatingHUD();
+        }
+        updateUIState();
+      }
+
+      function openSelector() {
+        selectorBackdrop.hidden = false;
+        updateUIState();
+      }
+
+      function closeSelector() {
+        if (!runningClockId) {
+          runClock(selectedClockId || savedClockId || CLOCK_REGISTRY[0].id, true);
+        } else {
+          selectorBackdrop.hidden = true;
+          wakeFloatingHUD();
+        }
+      }
+
+      // Populate Quick Switcher Dropdown
+      function initQuickSelect() {
+        quickClockSelect.innerHTML = "";
+        for (const c of CLOCK_REGISTRY) {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.shortName;
+          quickClockSelect.appendChild(opt);
+        }
+      }
+
+      // Render Cards Grid
+      function renderCards() {
+        clocksGrid.innerHTML = "";
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        const dateStr = now.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          weekday: "short"
+        });
+
+        const visibleClocks = CLOCK_REGISTRY.filter(
+          (c) => activeFilter === "all" || c.category === activeFilter
+        );
+
+        for (const item of visibleClocks) {
+          const isSelected = item.id === selectedClockId;
+          const isSaved = item.id === savedClockId;
+          const isRunning = item.id === runningClockId;
+
+          const card = document.createElement("article");
+          card.className = [
+            "clock-card",
+            isSelected ? "is-selected" : "",
+            isSaved ? "is-saved-default" : ""
+          ].filter(Boolean).join(" ");
+          card.dataset.clockId = item.id;
+
+          let previewInner = "";
+          if (item.category === "casio") {
+            previewInner = `<img class="analog-preview-img" src="${item.previewImg}" alt="${item.name}" loading="lazy">`;
+          } else {
+            previewInner = `
+              <div class="digital-preview-box" style="${item.previewStyle}">
+                <div class="digital-preview-time ${item.previewFontClass}">${hh}:${mm}</div>
+                <div class="digital-preview-date">${dateStr}</div>
+                <div class="digital-preview-hebrew" dir="rtl">פרשת השבוע · ירושלים</div>
+              </div>
+            `;
+          }
+
+          card.innerHTML = `
+            <div class="card-preview">
+              <div class="card-badges">
+                <span class="category-tag">${item.categoryLabel}</span>
+                <div class="status-badges">
+                  ${isRunning ? '<span class="running-badge">● RUNNING</span>' : ""}
+                  ${isSaved ? '<span class="saved-badge">★ SAVED DEFAULT</span>' : ""}
+                </div>
+              </div>
+              ${previewInner}
+            </div>
+            <div class="card-body">
+              <div>
+                <div class="card-title-row">
+                  <h2 class="card-title">${item.name}</h2>
+                  <span class="card-subbadge">${item.badge}</span>
+                </div>
+                <p class="card-desc">${item.description}</p>
+              </div>
+              <div class="card-actions">
+                <button type="button" class="btn primary" data-action="save-run" data-id="${item.id}">
+                  <span>${isSaved ? "✓ Saved · Run" : "★ Save & Run"}</span>
+                </button>
+                <button type="button" class="btn" data-action="run" data-id="${item.id}" title="Run without changing saved default">
+                  <span>▶ Run</span>
+                </button>
+                <button type="button" class="btn" data-action="save" data-id="${item.id}" title="Save as default clock">
+                  <span>${isSaved ? "★" : "☆"}</span>
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener("click", (e) => {
+            const actionBtn = e.target.closest("button[data-action]");
+            if (actionBtn) {
+              e.stopPropagation();
+              const act = actionBtn.dataset.action;
+              const targetId = actionBtn.dataset.id;
+              selectedClockId = targetId;
+              if (act === "save-run") {
+                saveClockAsDefault(targetId, true);
+                runClock(targetId, true);
+              } else if (act === "run") {
+                runClock(targetId, true);
+              } else if (act === "save") {
+                saveClockAsDefault(targetId, true);
+              }
+              return;
+            }
+            selectedClockId = item.id;
+            updateUIState();
+          });
+
+          card.addEventListener("dblclick", () => {
+            saveClockAsDefault(item.id, true);
+            runClock(item.id, true);
+          });
+
+          clocksGrid.appendChild(card);
+        }
+      }
+
+      function updateUIState() {
+        const savedObj = getClockById(savedClockId);
+        savedClockLabel.textContent = savedObj ? savedObj.shortName : "Not saved yet";
+
+        const selectedObj = getClockById(selectedClockId);
+        selectedClockLabel.textContent = selectedObj ? selectedObj.name : "None";
+
+        if (runningClockId && quickClockSelect.value !== runningClockId) {
+          quickClockSelect.value = runningClockId;
+        }
+
+        const isCurrentSaved = runningClockId && runningClockId === savedClockId;
+        quickSaveBtn.classList.toggle("is-saved", Boolean(isCurrentSaved));
+        quickSaveText.textContent = isCurrentSaved ? "✓ Saved Default" : "★ Save Default";
+
+        renderCards();
+      }
+
+      // Floating Switcher Auto-Hide
+      function wakeFloatingHUD() {
+        floatingSwitcher.classList.remove("is-idle");
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          if (selectorBackdrop.hidden) {
+            floatingSwitcher.classList.add("is-idle");
+          }
+        }, 3200);
+      }
+
+      // Header Live Clock Ticker
+      function updateHeaderClock() {
+        const now = new Date();
+        const timeEl = document.getElementById("header-live-time");
+        const dateEl = document.getElementById("header-live-date");
+        if (timeEl) {
+          timeEl.textContent = now.toLocaleTimeString("en-GB", { hour12: false });
+        }
+        if (dateEl) {
+          dateEl.textContent = now.toLocaleDateString("en-GB", {
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+          });
+        }
+        // Also update live digital preview times inside selector if open
+        if (!selectorBackdrop.hidden) {
+          const hh = String(now.getHours()).padStart(2, "0");
+          const mm = String(now.getMinutes()).padStart(2, "0");
+          document.querySelectorAll(".digital-preview-time").forEach((el) => {
+            el.textContent = `${hh}:${mm}`;
+          });
+        }
+      }
+
+      // Event Listeners
+      function bindEvents() {
+        // Filter Tabs
+        document.querySelectorAll(".filter-tab").forEach((tab) => {
+          tab.addEventListener("click", () => {
+            document.querySelectorAll(".filter-tab").forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+            activeFilter = tab.dataset.filter || "all";
+            renderCards();
+          });
+        });
+
+        // Auto-Launch Checkbox
+        autoLaunchCheckbox.addEventListener("change", () => {
+          try {
+            localStorage.setItem(STORAGE_KEYS.AUTO_LAUNCH, String(autoLaunchCheckbox.checked));
+          } catch (e) {}
+          showToast(
+            autoLaunchCheckbox.checked
+              ? "Auto-run saved clock on startup: ON"
+              : "Always show selector menu on startup: ON"
+          );
+        });
+
+        // Footer Buttons
+        document.getElementById("save-only-btn").addEventListener("click", () => {
+          if (selectedClockId) saveClockAsDefault(selectedClockId, true);
+        });
+
+        document.getElementById("run-only-btn").addEventListener("click", () => {
+          if (selectedClockId) runClock(selectedClockId, true);
+        });
+
+        document.getElementById("save-and-run-btn").addEventListener("click", () => {
+          if (selectedClockId) {
+            saveClockAsDefault(selectedClockId, true);
+            runClock(selectedClockId, true);
+          }
+        });
+
+        document.getElementById("open-standalone-btn").addEventListener("click", () => {
+          const item = getClockById(selectedClockId);
+          if (item) {
+            applyClockEnvironment(item);
+            window.location.href = item.url;
+          }
+        });
+
+        document.getElementById("close-selector-btn").addEventListener("click", closeSelector);
+        document.getElementById("open-selector-btn").addEventListener("click", openSelector);
+
+        // Quick Switcher Bar Controls
+        quickClockSelect.addEventListener("change", (e) => {
+          const newId = e.target.value;
+          runClock(newId, true);
+        });
+
+        quickSaveBtn.addEventListener("click", () => {
+          if (runningClockId) {
+            saveClockAsDefault(runningClockId, true);
+          }
+        });
+
+        document.getElementById("quick-fullscreen-btn").addEventListener("click", () => {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+        });
+
+        // Wake HUD on pointer movement
+        window.addEventListener("pointermove", wakeFloatingHUD, { passive: true });
+        window.addEventListener("pointerdown", wakeFloatingHUD, { passive: true });
+        document.getElementById("wake-hotzone").addEventListener("pointerenter", wakeFloatingHUD);
+
+        // Keyboard shortcuts: [M] or [Esc] toggles selector
+        window.addEventListener("keydown", (e) => {
+          if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+          if (e.key === "Escape") {
+            if (!selectorBackdrop.hidden) {
+              closeSelector();
+            } else {
+              openSelector();
+            }
+          } else if (e.key === "m" || e.key === "M") {
+            if (selectorBackdrop.hidden) openSelector();
+            else closeSelector();
+          }
+        });
+
+        // Messages from child clock iframe (Casio or Digital)
+        window.addEventListener("message", (e) => {
+          if (!e.data || typeof e.data !== "object") return;
+          if (e.data.type === "CLOCKWEB_OPEN_SELECTOR") {
+            openSelector();
+          } else if (e.data.type === "CLOCKWEB_USER_ACTIVITY") {
+            wakeFloatingHUD();
+          } else if (e.data.type === "CLOCKWEB_CASIO_MODEL_CHANGED" && e.data.model) {
+            const matched = CLOCK_REGISTRY.find((c) => c.casioModel === e.data.model);
+            if (matched) {
+              runningClockId = matched.id;
+              selectedClockId = matched.id;
+              updateUIState();
+            }
+          }
+        });
+      }
+
+      // Initialize App
+      function init() {
+        initQuickSelect();
+        loadSavedPreferences();
+        bindEvents();
+        updateHeaderClock();
+        setInterval(updateHeaderClock, 1000);
+
+        const params = new URLSearchParams(window.location.search);
+        const forceSelector = params.has("selector") || params.has("menu") || params.has("select");
+        const initialId = savedClockId || CLOCK_REGISTRY[0].id;
+        selectedClockId = initialId;
+
+        if (savedClockId && autoLaunchCheckbox.checked && !forceSelector) {
+          // Immediately run the saved default clock
+          runClock(savedClockId, true);
+        } else {
+          // Load initial clock in background stage and show selector modal
+          runClock(initialId, false);
+          openSelector();
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

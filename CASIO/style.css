@@ -96,6 +96,23 @@ body.user-idle:not(.calibrating-active) .hud-bar.auto-fade {
   gap: 0.85rem;
 }
 
+.main-selector-btn {
+  text-decoration: none;
+  background: rgba(18, 24, 32, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 222, 126, 0.35);
+  color: var(--accent-gshock);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.main-selector-btn:hover {
+  background: rgba(56, 222, 126, 0.18);
+  border-color: rgba(56, 222, 126, 0.65);
+  color: #ffffff;
+}
+
 .gshock-logo {
   font-size: 1.35rem;
   font-weight: 900;
