@@ -259,6 +259,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       padding: .15rem 0;
       gap: .2rem 1.5rem;
     }
+    :root[data-allow-scroll="true"],
+    :root[data-allow-scroll="true"] body {
+      height: auto !important;
+      min-height: 100dvh;
+      overflow-y: auto !important;
+      overflow-x: auto !important;
+    }
+    :root[data-allow-scroll="true"] main {
+      height: auto !important;
+      max-height: none !important;
+      min-height: 135dvh;
+      overflow: visible !important;
+      padding-block: 4rem 6rem !important;
+    }
+    .icon-button.active-scroll {
+      border-color: #38de7e !important;
+      color: #38de7e !important;
+    }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; } }
   </style>
   <script id="vendor-calendar">/* MINIMAL_VENDOR_START */
@@ -1090,8 +1108,9 @@ MINIMAL_SOURCE_END</script>
     </div>
   </main>
   <nav id="nav" aria-label="Clock actions">
-    <a class="icon-button" id="open-main-selector" href="../index.html?selector=1" aria-label="Open Main Clock Selector" title="Choose Clock (Main Selector)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></a>
+    <a class="icon-button" id="open-main-selector" href="../MainClockSelector.html?selector=1" aria-label="Open Main Clock Selector" title="Choose Clock (Main Selector)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg></a>
     <a class="icon-button" id="open-settings" href="settings.html" target="minimal-settings" aria-label="Open settings" title="Settings (or double-click the clock)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></a>
+    <button class="icon-button" id="toggle-scroll" type="button" aria-label="Toggle Page Scroll" title="Toggle Page Scroll (Roll up/down)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></button>
     <button class="icon-button" id="fullscreen" type="button" aria-label="Enter fullscreen" title="Fullscreen (F)"><svg id="icon-enter-fullscreen" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg id="icon-exit-fullscreen" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
   </nav>
   <p id="status" role="status" hidden></p>
@@ -1496,6 +1515,24 @@ MINIMAL_SOURCE_END</script>
         } catch (error) { status(`Fullscreen unavailable: ${error.message}`); }
       }
       $("fullscreen").addEventListener("click", fullscreen);
+      let allowPageScroll = false;
+      try { allowPageScroll = localStorage.getItem("clockweb_allow_scroll_v1") === "true"; } catch {}
+      function setPageScroll(enabled, notifyParent = true) {
+        allowPageScroll = Boolean(enabled);
+        document.documentElement.dataset.allowScroll = allowPageScroll ? "true" : "false";
+        const scrollBtn = $("toggle-scroll");
+        if (scrollBtn) scrollBtn.classList.toggle("active-scroll", allowPageScroll);
+        try { localStorage.setItem("clockweb_allow_scroll_v1", String(allowPageScroll)); } catch {}
+        fitToScreen();
+        if (notifyParent && window.parent && window.parent !== window) {
+          try { window.parent.postMessage({ type: "CLOCKWEB_PAGE_SCROLL_CHANGED", enabled: allowPageScroll }, "*"); } catch {}
+        }
+      }
+      setPageScroll(allowPageScroll, false);
+      const scrollBtn = $("toggle-scroll");
+      if (scrollBtn) {
+        scrollBtn.addEventListener("click", () => setPageScroll(!allowPageScroll, true));
+      }
       const mainSelectorBtn = $("open-main-selector");
       if (mainSelectorBtn) {
         mainSelectorBtn.addEventListener("click", (event) => {
@@ -1506,7 +1543,8 @@ MINIMAL_SOURCE_END</script>
         });
       }
       window.addEventListener("message", (event) => {
-        if (event.data && event.data.type === "CLOCKWEB_SET_DIGITAL_CONFIG" && event.data.config) {
+        if (!event.data) return;
+        if (event.data.type === "CLOCKWEB_SET_DIGITAL_CONFIG" && event.data.config) {
           try {
             config = normalize(event.data.config);
             localStorage.setItem(KEY, JSON.stringify(config));
@@ -1515,6 +1553,8 @@ MINIMAL_SOURCE_END</script>
           } catch (error) {
             status(`Settings update rejected: ${error.message}`);
           }
+        } else if (event.data.type === "CLOCKWEB_SET_PAGE_SCROLL") {
+          setPageScroll(Boolean(event.data.enabled), false);
         }
       });
       let navAwake = false, navTimer = 0, lastParentPing = 0;

@@ -339,6 +339,36 @@ body.user-idle:not(.calibrating-active) .hud-bar.auto-fade {
   overflow: hidden;
 }
 
+/* --- Page Scroll / Roll Mode --- */
+body.allow-page-scroll {
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+body.allow-page-scroll .app-viewport {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+body.allow-page-scroll .header-bar {
+  position: fixed;
+}
+
+body.allow-page-scroll .hud-bar {
+  position: fixed;
+}
+
+body.allow-page-scroll .screensaver-stage {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 135vh;
+  padding: 5.5rem 1.5rem 5.5rem;
+  pointer-events: auto;
+  overflow: visible;
+}
+
 /* Watch Frame: NATURAL WATCH CASE (NO circular cutting crop!) */
 .watch-frame {
   position: relative;

@@ -65,6 +65,10 @@
         height: 100dvh;
         z-index: 1;
         background: var(--bg-deep);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
       }
 
       .clock-iframe {
@@ -73,6 +77,66 @@
         border: none;
         display: block;
         background: var(--bg-deep);
+        transition: transform 0.35s cubic-bezier(0.2, 0, 0.2, 1);
+      }
+
+      .stage-container.rot-90 .clock-iframe {
+        width: 100dvh;
+        height: 100vw;
+        transform: rotate(90deg);
+        flex-shrink: 0;
+      }
+
+      .stage-container.rot-180 .clock-iframe {
+        transform: rotate(180deg);
+      }
+
+      .stage-container.rot-270 .clock-iframe {
+        width: 100dvh;
+        height: 100vw;
+        transform: rotate(270deg);
+        flex-shrink: 0;
+      }
+
+      /* Floating Page Scroll Up / Down Roll Buttons */
+      .page-roll-controls {
+        position: fixed;
+        inset-block-end: 1rem;
+        inset-inline-end: 1.25rem;
+        z-index: 150;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+      }
+
+      .page-roll-controls.is-idle:not(:hover) {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+      }
+
+      .roll-fab {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-glass);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(56, 222, 126, 0.4);
+        color: var(--accent-green);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        transition: all 0.2s ease;
+      }
+
+      .roll-fab:hover {
+        background: rgba(56, 222, 126, 0.24);
+        border-color: var(--accent-green);
+        color: #ffffff;
+        transform: scale(1.07);
       }
 
       /* Floating Auto-Hiding Quick Switcher Bar (Bottom-Left) */
@@ -175,22 +239,41 @@
         color: var(--text-primary);
       }
 
-      /* Main Selector Overlay Modal */
+      /* Main Selector Overlay Modal (Full Smooth Vertical Scrolling) */
       .selector-backdrop {
         position: fixed;
         inset: 0;
         z-index: 100;
-        background: radial-gradient(circle at 50% 0%, rgba(28, 42, 68, 0.58) 0%, rgba(5, 7, 11, 0.92) 75%);
+        background: radial-gradient(circle at 50% 0%, rgba(28, 42, 68, 0.58) 0%, rgba(5, 7, 11, 0.94) 75%);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
+        display: block;
         overflow-y: auto;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+        scrollbar-width: auto;
+        scrollbar-color: rgba(56, 222, 126, 0.55) rgba(15, 23, 42, 0.75);
         padding: clamp(1rem, 2.5vw, 2rem);
         box-sizing: border-box;
         transition: opacity 0.28s ease, visibility 0.28s ease;
+      }
+
+      .selector-backdrop::-webkit-scrollbar {
+        width: 12px;
+      }
+
+      .selector-backdrop::-webkit-scrollbar-track {
+        background: rgba(10, 14, 22, 0.85);
+      }
+
+      .selector-backdrop::-webkit-scrollbar-thumb {
+        background: rgba(56, 222, 126, 0.45);
+        border-radius: 999px;
+        border: 2px solid rgba(10, 14, 22, 0.85);
+      }
+
+      .selector-backdrop::-webkit-scrollbar-thumb:hover {
+        background: rgba(56, 222, 126, 0.75);
       }
 
       .selector-backdrop[hidden] {
@@ -205,20 +288,27 @@
         box-shadow: var(--shadow-elevated);
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        margin: auto 0;
+        flex-shrink: 0;
+        overflow: visible;
+        margin: 0 auto 2.5rem;
       }
 
       /* Selector Top Header */
       .selector-header {
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 25;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 1.35rem 1.75rem;
+        padding: 1.25rem 1.75rem;
         border-block-end: 1px solid var(--border-subtle);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+        border-radius: 20px 20px 0 0;
+        background: rgba(16, 21, 30, 0.94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
       }
 
       .brand-title-group {
@@ -647,14 +737,20 @@
 
       /* Selector Footer Bar */
       .selector-footer {
+        position: sticky;
+        inset-block-end: 0;
+        z-index: 25;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 1.1rem 1.75rem;
-        background: rgba(8, 11, 17, 0.85);
+        padding: 1.05rem 1.75rem;
+        background: rgba(8, 11, 17, 0.94);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border-block-start: 1px solid var(--border-subtle);
+        border-radius: 0 0 20px 20px;
       }
 
       .footer-selection-info {
@@ -742,7 +838,17 @@
       <span>Clocks</span>
     </button>
 
+    <button type="button" class="hud-btn" id="roll-prev-btn" title="Roll to Previous Clock">◀</button>
     <select id="quick-clock-select" class="hud-select" title="Quick Switch Active Clock"></select>
+    <button type="button" class="hud-btn" id="roll-next-btn" title="Roll to Next Clock">▶</button>
+
+    <button type="button" class="hud-btn" id="quick-scroll-btn" title="Toggle Page Scroll (Roll up/down the page)">
+      <span id="quick-scroll-text">↕ Scroll: OFF</span>
+    </button>
+
+    <button type="button" class="hud-btn" id="quick-rotate-btn" title="Roll / Rotate Page Orientation (0° / 90° / 180° / 270°)">
+      <span id="quick-rotate-text">↻ 0°</span>
+    </button>
 
     <button type="button" class="hud-btn" id="quick-save-btn" title="Save current clock as startup default">
       <span id="quick-save-text">★ Save Default</span>
@@ -754,6 +860,20 @@
       </svg>
     </button>
   </aside>
+
+  <!-- Floating Scroll / Roll Up & Down Buttons -->
+  <div class="page-roll-controls" id="page-roll-controls" aria-label="Page Scroll Controls">
+    <button type="button" class="roll-fab" id="roll-page-up-btn" title="Roll / Scroll Page Up">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+    <button type="button" class="roll-fab" id="roll-page-down-btn" title="Roll / Scroll Page Down">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+  </div>
 
   <!-- Main Clock Selector Modal Hub -->
   <div class="selector-backdrop" id="selector-backdrop" role="dialog" aria-modal="true" aria-labelledby="selector-title">
@@ -800,9 +920,29 @@
             <span>Saved Default: <strong id="saved-clock-label">None</strong></span>
           </div>
 
-          <label class="auto-launch-label" title="When enabled, opening index.html immediately runs your saved default clock">
+          <label class="auto-launch-label" title="Unlock vertical/horizontal scrolling so you can roll up and down the page">
+            <input type="checkbox" id="allow-scroll-checkbox">
+            <span>↕ Allow Page Scroll</span>
+          </label>
+
+          <label class="auto-launch-label" title="Automatically roll/cycle through clocks on a timer">
+            <span>⟳ Auto-Roll:</span>
+            <select id="auto-roll-select" class="hud-select" style="padding: 0.22rem 1.5rem 0.22rem 0.55rem; font-size: 0.76rem;">
+              <option value="0">Off</option>
+              <option value="15">Every 15s</option>
+              <option value="30">Every 30s</option>
+              <option value="60">Every 1m</option>
+              <option value="300">Every 5m</option>
+            </select>
+          </label>
+
+          <button type="button" class="filter-tab" id="toolbar-rotate-btn" title="Rotate / Roll Screen Orientation (0° / 90° / 180° / 270°)">
+            ↻ Rotate: <span id="toolbar-rotate-val">0°</span>
+          </button>
+
+          <label class="auto-launch-label" title="When enabled, opening MainClockSelector.html immediately runs your saved default clock">
             <input type="checkbox" id="auto-launch-checkbox" checked>
-            <span>Auto-run saved clock on startup</span>
+            <span>Auto-run saved on startup</span>
           </label>
         </div>
       </div>
@@ -855,6 +995,9 @@
       const STORAGE_KEYS = {
         SAVED_CLOCK_ID: "clockweb_saved_clock_id_v1",
         AUTO_LAUNCH: "clockweb_auto_launch_v1",
+        ALLOW_SCROLL: "clockweb_allow_scroll_v1",
+        AUTO_ROLL_SEC: "clockweb_auto_roll_sec_v1",
+        SCREEN_ROTATION: "clockweb_screen_rotation_v1",
         CASIO_MODEL: "casioActiveModelKey",
         DIGITAL_CONFIG: "webclockMinimalConfig",
         DIGITAL_SAVED_DESIGNS: "webclockSavedDesigns"
@@ -1096,16 +1239,26 @@
       ];
 
       // DOM References
+      const stageContainer = document.getElementById("stage-container");
       const clockIframe = document.getElementById("clock-iframe");
       const selectorBackdrop = document.getElementById("selector-backdrop");
       const clocksGrid = document.getElementById("clocks-grid");
       const savedClockLabel = document.getElementById("saved-clock-label");
       const selectedClockLabel = document.getElementById("selected-clock-label");
       const autoLaunchCheckbox = document.getElementById("auto-launch-checkbox");
+      const allowScrollCheckbox = document.getElementById("allow-scroll-checkbox");
+      const autoRollSelect = document.getElementById("auto-roll-select");
+      const toolbarRotateBtn = document.getElementById("toolbar-rotate-btn");
+      const toolbarRotateVal = document.getElementById("toolbar-rotate-val");
       const quickClockSelect = document.getElementById("quick-clock-select");
+      const quickScrollBtn = document.getElementById("quick-scroll-btn");
+      const quickScrollText = document.getElementById("quick-scroll-text");
+      const quickRotateBtn = document.getElementById("quick-rotate-btn");
+      const quickRotateText = document.getElementById("quick-rotate-text");
       const quickSaveBtn = document.getElementById("quick-save-btn");
       const quickSaveText = document.getElementById("quick-save-text");
       const floatingSwitcher = document.getElementById("floating-switcher");
+      const pageRollControls = document.getElementById("page-roll-controls");
       const toastBanner = document.getElementById("toast-banner");
       const toastText = document.getElementById("toast-text");
 
@@ -1114,6 +1267,10 @@
       let runningClockId = null;
       let selectedClockId = null;
       let activeFilter = "all";
+      let allowPageScroll = false;
+      let autoRollSeconds = 0;
+      let autoRollTimer = null;
+      let screenRotation = 0; // 0, 90, 180, 270
       let idleTimer = null;
       let toastTimer = null;
 
@@ -1130,8 +1287,105 @@
           }
           const rawAuto = localStorage.getItem(STORAGE_KEYS.AUTO_LAUNCH);
           autoLaunchCheckbox.checked = rawAuto === null ? true : rawAuto === "true";
+
+          allowPageScroll = localStorage.getItem(STORAGE_KEYS.ALLOW_SCROLL) === "true";
+          allowScrollCheckbox.checked = allowPageScroll;
+
+          const rawRoll = parseInt(localStorage.getItem(STORAGE_KEYS.AUTO_ROLL_SEC) || "0", 10);
+          if ([0, 15, 30, 60, 300].includes(rawRoll)) {
+            autoRollSeconds = rawRoll;
+            autoRollSelect.value = String(rawRoll);
+          }
+
+          const rawRot = parseInt(localStorage.getItem(STORAGE_KEYS.SCREEN_ROTATION) || "0", 10);
+          if ([0, 90, 180, 270].includes(rawRot)) {
+            screenRotation = rawRot;
+          }
         } catch (e) {
           autoLaunchCheckbox.checked = true;
+        }
+        applyPageScrollState(allowPageScroll, false);
+        applyScreenRotation(screenRotation, false);
+        applyAutoRollTimer(autoRollSeconds, false);
+      }
+
+      function applyPageScrollState(enabled, notify = true) {
+        allowPageScroll = Boolean(enabled);
+        allowScrollCheckbox.checked = allowPageScroll;
+        quickScrollBtn.classList.toggle("is-saved", allowPageScroll);
+        quickScrollText.textContent = allowPageScroll ? "↕ Scroll: ON" : "↕ Scroll: OFF";
+        try {
+          localStorage.setItem(STORAGE_KEYS.ALLOW_SCROLL, String(allowPageScroll));
+        } catch (e) {}
+        if (clockIframe && clockIframe.contentWindow) {
+          try {
+            clockIframe.contentWindow.postMessage(
+              { type: "CLOCKWEB_SET_PAGE_SCROLL", enabled: allowPageScroll },
+              "*"
+            );
+          } catch (e) {}
+        }
+        if (notify) {
+          showToast(allowPageScroll ? "Page Scroll enabled (roll up/down)" : "Page Scroll locked to full-screen");
+        }
+      }
+
+      function applyScreenRotation(deg, notify = true) {
+        screenRotation = [0, 90, 180, 270].includes(deg) ? deg : 0;
+        stageContainer.classList.remove("rot-90", "rot-180", "rot-270");
+        if (screenRotation !== 0) {
+          stageContainer.classList.add(`rot-${screenRotation}`);
+        }
+        toolbarRotateVal.textContent = `${screenRotation}°`;
+        quickRotateText.textContent = `↻ ${screenRotation}°`;
+        quickRotateBtn.classList.toggle("is-saved", screenRotation !== 0);
+        try {
+          localStorage.setItem(STORAGE_KEYS.SCREEN_ROTATION, String(screenRotation));
+        } catch (e) {}
+        if (notify) {
+          showToast(`Rotated screen to ${screenRotation}° (saved)`);
+        }
+      }
+
+      function rollRelativeClock(step) {
+        const currentIdx = CLOCK_REGISTRY.findIndex((c) => c.id === (runningClockId || selectedClockId));
+        const nextIdx = (Math.max(0, currentIdx) + step + CLOCK_REGISTRY.length) % CLOCK_REGISTRY.length;
+        const nextClock = CLOCK_REGISTRY[nextIdx];
+        if (nextClock) {
+          runClock(nextClock.id, selectorBackdrop.hidden);
+        }
+      }
+
+      function applyAutoRollTimer(seconds, notify = true) {
+        autoRollSeconds = parseInt(seconds, 10) || 0;
+        autoRollSelect.value = String(autoRollSeconds);
+        clearInterval(autoRollTimer);
+        autoRollTimer = null;
+        try {
+          localStorage.setItem(STORAGE_KEYS.AUTO_ROLL_SEC, String(autoRollSeconds));
+        } catch (e) {}
+        if (autoRollSeconds > 0) {
+          autoRollTimer = setInterval(() => {
+            rollRelativeClock(1);
+          }, autoRollSeconds * 1000);
+          if (notify) showToast(`Auto-Roll Clocks: every ${autoRollSeconds}s`);
+        } else if (notify) {
+          showToast("Auto-Roll Clocks: OFF");
+        }
+      }
+
+      function scrollActiveViewBy(deltaY) {
+        if (!selectorBackdrop.hidden) {
+          selectorBackdrop.scrollBy({ top: deltaY, behavior: "smooth" });
+        } else {
+          if (!allowPageScroll) {
+            applyPageScrollState(true, true);
+          }
+          try {
+            if (clockIframe && clockIframe.contentWindow) {
+              clockIframe.contentWindow.scrollBy({ top: deltaY, behavior: "smooth" });
+            }
+          } catch (e) {}
         }
       }
 
@@ -1379,10 +1633,12 @@
       // Floating Switcher Auto-Hide
       function wakeFloatingHUD() {
         floatingSwitcher.classList.remove("is-idle");
+        pageRollControls.classList.remove("is-idle");
         clearTimeout(idleTimer);
         idleTimer = setTimeout(() => {
           if (selectorBackdrop.hidden) {
             floatingSwitcher.classList.add("is-idle");
+            pageRollControls.classList.add("is-idle");
           }
         }, 3200);
       }
@@ -1435,6 +1691,49 @@
               ? "Auto-run saved clock on startup: ON"
               : "Always show selector menu on startup: ON"
           );
+        });
+
+        // Allow Page Scroll Checkbox & Quick Button
+        allowScrollCheckbox.addEventListener("change", () => {
+          applyPageScrollState(allowScrollCheckbox.checked, true);
+        });
+        quickScrollBtn.addEventListener("click", () => {
+          applyPageScrollState(!allowPageScroll, true);
+        });
+
+        // Auto-Roll Clocks Select & Prev/Next Roll Buttons
+        autoRollSelect.addEventListener("change", (e) => {
+          applyAutoRollTimer(e.target.value, true);
+        });
+        document.getElementById("roll-prev-btn").addEventListener("click", () => rollRelativeClock(-1));
+        document.getElementById("roll-next-btn").addEventListener("click", () => rollRelativeClock(1));
+
+        // Rotate / Roll Screen Orientation Buttons
+        const cycleRotation = () => {
+          const nextDeg = (screenRotation + 90) % 360;
+          applyScreenRotation(nextDeg, true);
+        };
+        toolbarRotateBtn.addEventListener("click", cycleRotation);
+        quickRotateBtn.addEventListener("click", cycleRotation);
+
+        // Floating Page Scroll Up / Down Buttons
+        document.getElementById("roll-page-up-btn").addEventListener("click", () => {
+          scrollActiveViewBy(-320);
+        });
+        document.getElementById("roll-page-down-btn").addEventListener("click", () => {
+          scrollActiveViewBy(320);
+        });
+
+        // Sync Page Scroll state whenever iframe finishes loading
+        clockIframe.addEventListener("load", () => {
+          if (clockIframe.contentWindow) {
+            try {
+              clockIframe.contentWindow.postMessage(
+                { type: "CLOCKWEB_SET_PAGE_SCROLL", enabled: allowPageScroll },
+                "*"
+              );
+            } catch (e) {}
+          }
         });
 
         // Footer Buttons
@@ -1518,6 +1817,8 @@
               selectedClockId = matched.id;
               updateUIState();
             }
+          } else if (e.data.type === "CLOCKWEB_PAGE_SCROLL_CHANGED") {
+            applyPageScrollState(Boolean(e.data.enabled), false);
           }
         });
       }

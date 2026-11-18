@@ -213,6 +213,14 @@ class CasioWatchApp {
     this.scalePresets = [0.98, 1.00, 1.15, 1.30, 1.50, 0.75, 0.88];
     this.scalePresetIndex = 0;
 
+    // Page Scroll / Roll Mode
+    this.pageScrollEnabled = false;
+    try {
+      this.pageScrollEnabled = localStorage.getItem('clockweb_allow_scroll_v1') === 'true';
+    } catch (e) {}
+    this.togglePageScrollBtn = document.getElementById('toggle-page-scroll');
+    this.pageScrollText = document.getElementById('page-scroll-text');
+
     // Screensaver Idle Timer
     this.idleTimer = null;
     this.idleDelayMs = 3500;
@@ -235,12 +243,32 @@ class CasioWatchApp {
     if (this.modelSelector) {
       this.modelSelector.value = this.activeModelKey;
     }
+    this.setPageScroll(this.pageScrollEnabled, false);
     this.switchModel(this.activeModelKey);
     this.bindEvents();
     this.bindCalibrationSliders();
     this.setupScreensaverIdle();
     this.setMotionSpeed(this.currentSpeedLevel);
     this.tick();
+  }
+
+  setPageScroll(enabled, notifyParent = true) {
+    this.pageScrollEnabled = Boolean(enabled);
+    document.body.classList.toggle('allow-page-scroll', this.pageScrollEnabled);
+    if (this.togglePageScrollBtn) {
+      this.togglePageScrollBtn.classList.toggle('active', this.pageScrollEnabled);
+    }
+    if (this.pageScrollText) {
+      this.pageScrollText.textContent = this.pageScrollEnabled ? 'Scroll: ON' : 'Scroll: OFF';
+    }
+    try {
+      localStorage.setItem('clockweb_allow_scroll_v1', String(this.pageScrollEnabled));
+    } catch (e) {}
+    if (notifyParent && window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({ type: 'CLOCKWEB_PAGE_SCROLL_CHANGED', enabled: this.pageScrollEnabled }, '*');
+      } catch (e) {}
+    }
   }
 
   // --- Dynamic Model Switcher ---
@@ -711,10 +739,20 @@ class CasioWatchApp {
 
     // Listen for Parent Selector Commands
     window.addEventListener('message', (e) => {
-      if (e.data && e.data.type === 'CLOCKWEB_SET_CASIO_MODEL' && e.data.model) {
+      if (!e.data) return;
+      if (e.data.type === 'CLOCKWEB_SET_CASIO_MODEL' && e.data.model) {
         this.switchModel(e.data.model);
+      } else if (e.data.type === 'CLOCKWEB_SET_PAGE_SCROLL') {
+        this.setPageScroll(Boolean(e.data.enabled), false);
       }
     });
+
+    // Page Scroll Toggle Button
+    if (this.togglePageScrollBtn) {
+      this.togglePageScrollBtn.addEventListener('click', () => {
+        this.setPageScroll(!this.pageScrollEnabled, true);
+      });
+    }
 
     // Model Selector Change
     if (this.modelSelector) {

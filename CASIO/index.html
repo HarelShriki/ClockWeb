@@ -14,7 +14,7 @@
     <!-- Top Header Bar (Auto-hides in screensaver mode) -->
     <header class="header-bar auto-fade" id="header-bar">
       <div class="brand-group">
-        <a href="../index.html?selector=1" class="pill-btn main-selector-btn" id="open-main-selector" title="Open Main Clock Selector">
+        <a href="../MainClockSelector.html?selector=1" class="pill-btn main-selector-btn" id="open-main-selector" title="Open Main Clock Selector">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
           </svg>
@@ -68,6 +68,12 @@
             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
           </svg>
           <span id="screen-scale-text">Screen: 98%</span>
+        </button>
+
+        <!-- Page Scroll / Roll Toggle -->
+        <button class="pill-btn" id="toggle-page-scroll" title="Toggle Page Scrolling (Roll up/down the watch page)">
+          <span class="v-checkbox"></span>
+          <span id="page-scroll-text">Scroll: OFF</span>
         </button>
 
         <!-- Sound Ticks Toggle -->
