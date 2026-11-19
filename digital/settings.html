@@ -4,16 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Webclock — minimal settings</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Local Offline Fonts (100% Standalone) -->
+    <link rel="stylesheet" href="../assets/fonts/google-sans.css" />
+    <link rel="stylesheet" href="../assets/fonts/press-start-2p.css" />
     <style>
       :root {
         color-scheme: dark;
-        font-family: system-ui, "Segoe UI", Arial, sans-serif;
+        font-family: "Google Sans", system-ui, "Segoe UI", Arial, sans-serif;
         background: #10191a;
         color: #f3f5ef;
       }
@@ -22,8 +19,9 @@
       }
       body {
         margin: 0;
-        padding: 1.5rem clamp(1rem, 5vw, 4rem) 4rem;
+        padding: 1rem clamp(0.75rem, 3.5vw, 2.5rem) 4rem;
         min-height: 100vh;
+        min-height: 100dvh;
         background: linear-gradient(160deg, #10191a 0%, #15262a 55%, #1a2b27 100%) fixed;
       }
       html {
@@ -34,112 +32,218 @@
           scroll-behavior: auto;
         }
       }
-      header {
-        position: fixed;
-        inset: 1rem 1.25rem auto auto;
-        z-index: 10;
+      .top-toolbar {
+        position: sticky;
+        top: 0.5rem;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        max-width: 58rem;
+        margin: 0 auto 1rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(142, 170, 164, 0.4);
+        border-radius: 0.85rem;
+        background: rgba(16, 25, 26, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
       }
-      header a {
-        display: inline-block;
-        padding: 0.4rem 0.75rem;
-        border-radius: 0.5rem;
-        background: rgba(16, 25, 26, 0.85);
-        backdrop-filter: blur(6px);
+      .top-toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
       }
-      h1 {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
+      .top-toolbar h1 {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip-path: none;
+        white-space: normal;
+        margin: 0;
+        font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+        font-weight: 700;
+        color: #f3f5ef;
+      }
+      .top-toolbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .toolbar-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        min-height: 2.75rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 0.55rem;
+        border: 1px solid rgba(228, 212, 148, 0.45);
+        background: rgba(228, 212, 148, 0.14);
+        color: #e4d494;
+        font: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
         white-space: nowrap;
       }
+      .toolbar-pill:hover {
+        background: rgba(228, 212, 148, 0.28);
+      }
+      .toolbar-pill.secondary {
+        border-color: rgba(142, 170, 164, 0.45);
+        background: rgba(255, 255, 255, 0.06);
+        color: #f3f5ef;
+      }
+      .toolbar-pill.secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
       h2 {
-        font-size: 1.15rem;
-        font-weight: 500;
-        margin: 0 0 1.25rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0;
       }
       main {
         min-width: 0;
-        max-width: 62rem;
+        width: 100%;
+        max-width: 58rem;
+        margin: 0 auto;
       }
       .shell {
-        display: grid;
-        grid-template-columns: 15rem minmax(0, 1fr);
-        gap: 2.5rem;
-        max-width: 79.5rem;
-        margin: 0.5rem 0 0;
+        display: block;
+        max-width: 58rem;
+        margin: 0 auto;
       }
-      .toc {
-        position: sticky;
-        top: 1rem;
-        align-self: start;
-        padding: 1rem;
-        border: 1px solid rgba(142, 170, 164, 0.35);
-        border-radius: 0.75rem;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+      /* Collapsible Setting-by-Setting Accordion Cards */
+      .columns {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
       }
-      .toc h2 {
-        font-size: 0.8rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        margin: 0 0 0.75rem;
-        color: #bed0ca;
+      details.setting-accordion {
+        border: 1px solid rgba(142, 170, 164, 0.38);
+        border-radius: 0.85rem;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018));
+        overflow: hidden;
+        transition: border-color 0.2s ease, background 0.2s ease;
       }
-      .toc ul {
+      details.setting-accordion[open] {
+        border-color: rgba(228, 212, 148, 0.65);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+      }
+      summary.setting-summary {
         list-style: none;
-        margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 0.15rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-height: 3.4rem;
+        padding: 0.85rem 1.15rem;
+        cursor: pointer;
+        user-select: none;
+        background: rgba(255, 255, 255, 0.03);
+        transition: background 0.15s ease;
       }
-      .toc a {
-        display: block;
-        padding: 0.5rem 0.65rem;
-        border-radius: 0.5rem;
+      summary.setting-summary::-webkit-details-marker {
+        display: none;
+      }
+      summary.setting-summary:hover {
+        background: rgba(255, 255, 255, 0.07);
+      }
+      details.setting-accordion[open] > summary.setting-summary {
+        border-bottom: 1px solid rgba(142, 170, 164, 0.28);
+        background: rgba(228, 212, 148, 0.1);
+      }
+      .setting-summary-left {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.45rem 0.65rem;
+        min-width: 0;
+        flex: 1;
+      }
+      .setting-summary-title {
+        font-size: 1.02rem;
+        font-weight: 700;
         color: #f3f5ef;
-        text-decoration: none;
       }
-      .toc a:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .toc a[aria-current="true"] {
-        background: rgba(228, 212, 148, 0.16);
+      .setting-summary-preview {
+        font-size: 0.86rem;
+        font-weight: 500;
         color: #e4d494;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
       }
-      .toc small {
-        display: block;
-        color: #bed0ca;
-        line-height: 1.3;
+      .setting-summary-chevron {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.85rem;
+        height: 1.85rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        color: #e4d494;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        transition: transform 0.2s ease, background 0.2s ease;
       }
-      .toc {
-        max-height: calc(100vh - 2rem);
-        overflow-y: auto;
+      details.setting-accordion[open] > summary.setting-summary .setting-summary-chevron {
+        transform: rotate(90deg);
+        background: rgba(228, 212, 148, 0.24);
+      }
+      .setting-body {
+        padding: 1.15rem 1.25rem 1.35rem;
+      }
+      @media (max-width: 600px) {
+        body {
+          padding: 0.6rem 0.6rem 3rem;
+        }
+        .top-toolbar {
+          padding: 0.6rem 0.75rem;
+          top: 0.25rem;
+        }
+        summary.setting-summary {
+          padding: 0.75rem 0.9rem;
+        }
+        .setting-body {
+          padding: 0.95rem 0.9rem 1.1rem;
+        }
       }
       .profiles {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(142, 170, 164, 0.35);
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
       }
       .profiles label,
       .profiles h3 {
         display: block;
-        margin: 0.25rem 0;
+        margin: 0.35rem 0;
         color: #bed0ca;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 700;
       }
       .profiles input[type="text"] {
         box-sizing: border-box;
         width: 100%;
-        min-height: 2.5rem;
-        padding: 0.4rem 0.6rem;
+        max-width: 26rem;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.7rem;
       }
       .profiles button {
         box-sizing: border-box;
-        min-height: 2.5rem;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.95rem;
         border: 1px solid #e4d494;
-        border-radius: 0.5rem;
+        border-radius: 0.55rem;
         background: rgba(228, 212, 148, 0.16);
         color: #e4d494;
         font: inherit;
@@ -151,12 +255,14 @@
       }
       #design-save {
         width: 100%;
+        max-width: 26rem;
         margin: 0.5rem 0 1rem;
       }
       #design-list {
         margin: 0;
         padding: 0;
         list-style: none;
+        max-width: 26rem;
       }
       #design-list li {
         display: flex;
@@ -173,12 +279,12 @@
         white-space: nowrap;
       }
       #design-list .design-delete {
-        width: 2.5rem;
+        width: 2.6rem;
       }
       #design-empty {
         margin: 0.25rem 0;
         color: #bed0ca;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
       }
       .profile-transfer {
         margin-top: 1rem;
@@ -186,11 +292,12 @@
         border-top: 1px solid rgba(228, 212, 148, 0.25);
         display: flex;
         flex-direction: column;
-        gap: 0.45rem;
+        gap: 0.5rem;
+        max-width: 26rem;
       }
       .profile-transfer button {
         width: 100%;
-        padding: 0.35rem 0.6rem;
+        padding: 0.45rem 0.65rem;
         font-size: 0.85rem;
       }
       .profile-transfer-title {
@@ -200,38 +307,8 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
-      @media (max-width: 860px) {
-        body {
-          padding-top: 3.5rem;
-        }
-        .toc {
-          top: 3.5rem;
-        }
-        .shell {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 1rem;
-        }
-        .toc {
-          z-index: 5;
-          padding: 0.5rem;
-          background: #15262a;
-          max-height: 75vh;
-        }
-        .toc h2,
-        .toc small {
-          display: none;
-        }
-        .toc ul {
-          display: flex;
-          overflow-x: auto;
-          gap: 0.25rem;
-        }
-        .toc a {
-          white-space: nowrap;
-        }
-      }
       .section-intro {
-        margin: -0.5rem 0 1rem;
+        margin: 0 0 1rem;
         color: #bed0ca;
         line-height: 1.5;
       }
@@ -289,12 +366,20 @@
         display: block;
         width: 100%;
         max-width: 26rem;
+        min-height: 2.75rem;
         background: #182727;
         color: inherit;
         border: 1px solid #8eaaa4;
-        border-radius: 0;
-        padding: 0.6rem;
+        border-radius: 0.55rem;
+        padding: 0.6rem 0.75rem;
         font: inherit;
+      }
+      @media (prefers-reduced-transparency: reduce) {
+        .top-toolbar {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          background: #10191a !important;
+        }
       }
       input[type="color"] {
         display: block;
@@ -411,47 +496,107 @@
       :root[data-retro-theme="true"] output {
         color: #4fc3f7;
       }
+
+      /* Light Theme Support */
+      :root[data-theme="light"] {
+        color-scheme: light;
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      :root[data-theme="light"] body {
+        background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 55%, #e2e8f0 100%) fixed;
+        color: #0f172a;
+      }
+      :root[data-theme="light"] .top-toolbar {
+        background: rgba(255, 255, 255, 0.94);
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+      }
+      :root[data-theme="light"] .top-toolbar h1 {
+        color: #0f172a;
+      }
+      :root[data-theme="light"] details.setting-accordion {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      }
+      :root[data-theme="light"] details.setting-accordion[open] {
+        border-color: rgba(180, 83, 9, 0.45);
+        background: #ffffff;
+      }
+      :root[data-theme="light"] summary.setting-summary {
+        background: #ffffff;
+      }
+      :root[data-theme="light"] summary.setting-summary:hover {
+        background: rgba(0, 0, 0, 0.03);
+      }
+      :root[data-theme="light"] details.setting-accordion[open] > summary.setting-summary {
+        background: rgba(245, 158, 11, 0.08);
+        border-bottom-color: rgba(0, 0, 0, 0.08);
+      }
+      :root[data-theme="light"] .setting-summary-title {
+        color: #0f172a;
+      }
+      :root[data-theme="light"] .setting-summary-preview {
+        color: #b45309;
+      }
+      :root[data-theme="light"] .setting-summary-chevron {
+        background: rgba(0, 0, 0, 0.06);
+        color: #334155;
+      }
+      :root[data-theme="light"] details.setting-accordion[open] .setting-summary-chevron {
+        background: rgba(245, 158, 11, 0.2);
+        color: #b45309;
+      }
+      :root[data-theme="light"] input[type="text"],
+      :root[data-theme="light"] input[type="number"],
+      :root[data-theme="light"] select {
+        background: #ffffff;
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+      :root[data-theme="light"] .toolbar-pill.secondary {
+        background: rgba(0, 0, 0, 0.06);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.14);
+      }
+      :root[data-theme="light"] .field-group,
+      :root[data-theme="light"] .preset-card {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.08);
+      }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Minimal clock / settings</h1>
-      <a href="index.html" target="minimal-display">Open display ↗</a>
+    <header class="top-toolbar">
+      <div class="top-toolbar-left">
+        <h1>Digital Clock Settings</h1>
+      </div>
+      <div class="top-toolbar-actions">
+        <button type="button" id="toggle-all-accordions" class="toolbar-pill secondary" aria-expanded="false">
+          <span id="toggle-all-text">Open All Settings</span>
+        </button>
+        <button type="button" id="digital-theme-toggle-btn" class="toolbar-pill secondary" title="Toggle Dark / Light Theme">
+          <span id="digital-theme-icon">🌙</span>
+          <span id="digital-theme-text">Dark</span>
+        </button>
+        <a href="../MainClockSelector.html?selector=1" class="toolbar-pill secondary">Clocks Hub</a>
+        <a href="index.html" target="minimal-display" class="toolbar-pill">Open display ↗</a>
+      </div>
     </header>
     <div class="shell">
-    <nav class="toc" id="toc" aria-label="Settings sections">
-      <h2>Contents</h2>
-      <ul>
-        <li><a href="#sec-clock">Clock<small>Time, size, font, position</small></a></li>
-        <li><a href="#sec-gregorian">Gregorian date<small>Date line and work week</small></a></li>
-        <li><a href="#sec-hebrew">Hebrew date<small>Hebrew date line and size</small></a></li>
-        <li><a href="#sec-sun">Next sun event<small>Sunrise/sunset time and icon</small></a></li>
-        <li><a href="#sec-place">Place &amp; Jewish calendar<small>City, holidays, Torah portion</small></a></li>
-        <li><a href="#sec-screen">Screen &amp; controls<small>Fit to display, icons, shortcuts</small></a></li>
-        <li><a href="#sec-appearance">Appearance<small>Colors, gradient, background</small></a></li>
-        <li><a href="#sec-lines">Notes<small>Notes for chosen days</small></a></li>
-      </ul>
-      <div class="profiles">
-        <label for="design-name">Name for save</label>
-        <input id="design-name" type="text" maxlength="30" autocomplete="off" />
-        <button type="button" id="design-save">Save setting</button>
-        <h3 id="design-heading">Load setting</h3>
-        <ul id="design-list" aria-labelledby="design-heading"></ul>
-        <p id="design-empty" hidden>No saved settings yet.</p>
-        <div class="profile-transfer">
-          <h4 class="profile-transfer-title">Transfer &amp; Backup</h4>
-          <button type="button" id="transfer-export" title="Download your settings to a .json file">Export settings (file)</button>
-          <input type="file" id="transfer-import-file" accept=".json,application/json" hidden />
-          <button type="button" id="transfer-import" title="Load settings from a .json file">Import settings (file)</button>
-          <button type="button" id="transfer-link" title="Copy URL link with settings to clipboard">Copy shareable link</button>
-        </div>
-      </div>
-    </nav>
     <main>
       <p id="status" role="status" aria-live="polite"></p>
       <form id="settings" class="columns" novalidate>
-        <section id="sec-clock" aria-labelledby="h-clock">
-          <h2 id="h-clock">Clock</h2>
+        <details id="sec-clock" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">1. Clock</span>
+              <span class="setting-summary-preview" id="preview-clock">(24h · 100% · Calibri)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">How the time itself looks and where it sits.</p>
           <label class="choice"
             ><input name="is12Hour" type="checkbox" /> Use 12-hour time</label
@@ -495,9 +640,17 @@
               <option value="sans">Sans-serif (simple)</option>
             </select>
           </label>
-        </section>
-        <section id="sec-gregorian" aria-labelledby="h-gregorian">
-          <h2 id="h-gregorian">Gregorian date</h2>
+          </div>
+        </details>
+        <details id="sec-gregorian" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">2. Gregorian Date</span>
+              <span class="setting-summary-preview" id="preview-gregorian">(Shown · DD/MM/YYYY)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">The everyday date line shown under the clock.</p>
           <label class="choice"
             ><input name="showDate" type="checkbox" /> Show Gregorian
@@ -573,9 +726,17 @@
             (Sunday 1 Nov 2026 is week 45; ISO says 44). Both the week line and
             W/WW date tokens use this rule.</small
           >
-        </section>
-        <section id="sec-hebrew" aria-labelledby="h-hebrew">
-          <h2 id="h-hebrew">Hebrew date</h2>
+          </div>
+        </details>
+        <details id="sec-hebrew" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">3. Hebrew Date</span>
+              <span class="setting-summary-preview" id="preview-hebrew">(Shown · HW - HD HB)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             The Hebrew date line.
           </p>
@@ -634,9 +795,17 @@
               <option value="HD HM">Day and month</option>
             </select>
           </label>
-        </section>
-        <section id="sec-sun" aria-labelledby="h-sun">
-          <h2 id="h-sun">Next sun event</h2>
+          </div>
+        </details>
+        <details id="sec-sun" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">4. Next Sun Event</span>
+              <span class="setting-summary-preview" id="preview-sun">(Shown · Sunrise / Sunset)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             The next sunrise or sunset time, shown right after the Hebrew date.
           </p>
@@ -712,9 +881,17 @@
           <fieldset class="component-styles" id="component-styles-sun">
             <legend>Color and bold for the next sun event</legend>
           </fieldset>
-        </section>
-        <section id="sec-place" aria-labelledby="h-place">
-          <h2 id="h-place">Place &amp; Jewish calendar</h2>
+          </div>
+        </details>
+        <details id="sec-place" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">5. Place &amp; Jewish Calendar</span>
+              <span class="setting-summary-preview" id="preview-place">(Jerusalem · Israel)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             Location drives the time zone, holidays, Shabbat times and sun events.
           </p>
@@ -871,10 +1048,18 @@
               makes that item heavier.</small
             >
           </fieldset>
-        </section>
+          </div>
+        </details>
 
-        <section id="sec-screen" aria-labelledby="h-screen">
-          <h2 id="h-screen">Screen &amp; controls</h2>
+        <details id="sec-screen" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">6. Screen &amp; Controls</span>
+              <span class="setting-summary-preview" id="preview-screen">(Auto-fit · Padding 16px)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             Make the display fit any screen and choose how it can be controlled.
           </p>
@@ -900,9 +1085,17 @@
               <option value="hidden">Never show the icons</option>
             </select>
           </label>
-        </section>
-        <section id="sec-appearance" aria-labelledby="h-appearance">
-          <h2 id="h-appearance">Appearance</h2>
+          </div>
+        </details>
+        <details id="sec-appearance" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">7. Appearance &amp; Colors</span>
+              <span class="setting-summary-preview" id="preview-appearance">(Colors · Gradient · Motion)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             Colors, background and the finishing touches on the display.
           </p>
@@ -1037,9 +1230,17 @@
             >Remote links are not supported. Browser-stored images and settings
             do not travel with copied HTML files.</small
           >
-        </section>
-        <section id="sec-lines" aria-labelledby="h-lines">
-          <h2 id="h-lines">Notes</h2>
+          </div>
+        </details>
+        <details id="sec-lines" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">8. Day Notes</span>
+              <span class="setting-summary-preview" id="preview-notes">(Note 1 &amp; Note 2)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
           <p class="section-intro">
             Write short notes and tick the days each one appears on, for
             example a reminder before Shabbat. A note can also replace the
@@ -1052,7 +1253,37 @@
             >Up to 120 characters per note. Days follow the selected city's
             time zone. Style the notes under Appearance (“Note”).</small
           >
-        </section>
+          </div>
+        </details>
+        <details id="sec-profiles" class="setting-accordion">
+          <summary class="setting-summary">
+            <span class="setting-summary-left">
+              <span class="setting-summary-title">9. Saved Profiles &amp; Transfer / Backup</span>
+              <span class="setting-summary-preview" id="preview-profiles">(Save, Load, Export &amp; Import)</span>
+            </span>
+            <span class="setting-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="setting-body">
+            <p class="section-intro">
+              Save named clock presets, load existing designs, or export/import a settings file.
+            </p>
+            <div class="profiles">
+              <label for="design-name">Name for save</label>
+              <input id="design-name" type="text" maxlength="30" autocomplete="off" placeholder="e.g. My Custom Clock" />
+              <button type="button" id="design-save">Save setting</button>
+              <h3 id="design-heading">Load setting</h3>
+              <ul id="design-list" aria-labelledby="design-heading"></ul>
+              <p id="design-empty" hidden>No saved settings yet.</p>
+              <div class="profile-transfer">
+                <h4 class="profile-transfer-title">Transfer &amp; Backup</h4>
+                <button type="button" id="transfer-export" title="Download your settings to a .json file">Export settings (file)</button>
+                <input type="file" id="transfer-import-file" accept=".json,application/json" hidden />
+                <button type="button" id="transfer-import" title="Load settings from a .json file">Import settings (file)</button>
+                <button type="button" id="transfer-link" title="Copy URL link with settings to clipboard">Copy shareable link</button>
+              </div>
+            </div>
+          </div>
+        </details>
       </form>
     </main>
     </div>
@@ -1560,22 +1791,55 @@
             checked.length > 0 && checked.length < shadowNames.length;
         }
         syncShadowAll();
-        const tocLinks = [...document.querySelectorAll("#toc ul a")];
-        const markCurrentSection = (id) =>
-          tocLinks.forEach((link) =>
-            link.setAttribute("aria-current", String(link.hash === `#${id}`)),
-          );
-        if ("IntersectionObserver" in window) {
-          const observer = new IntersectionObserver(
-            (entries) => {
-              for (const entry of entries)
-                if (entry.isIntersecting) markCurrentSection(entry.target.id);
-            },
-            { rootMargin: "-15% 0px -70% 0px" },
-          );
-          for (const link of tocLinks)
-            observer.observe(document.querySelector(link.hash));
+        const accordions = [...document.querySelectorAll("details.setting-accordion")];
+        const toggleAllBtn = document.getElementById("toggle-all-accordions");
+        const toggleAllText = document.getElementById("toggle-all-text");
+        function syncToggleAllBtn() {
+          if (!toggleAllBtn || !toggleAllText) return;
+          const allOpen = accordions.length > 0 && accordions.every((d) => d.open);
+          toggleAllBtn.setAttribute("aria-expanded", String(allOpen));
+          toggleAllText.textContent = allOpen ? "Close All Settings" : "Open All Settings";
         }
+        if (toggleAllBtn) {
+          toggleAllBtn.addEventListener("click", () => {
+            const shouldOpen = !accordions.every((d) => d.open);
+            for (const d of accordions) {
+              d.open = shouldOpen;
+            }
+            syncToggleAllBtn();
+          });
+        }
+        for (const d of accordions) {
+          d.addEventListener("toggle", syncToggleAllBtn);
+        }
+        syncToggleAllBtn();
+        // Theme Toggle Support (Dark / Light)
+        const digitalThemeBtn = document.getElementById("digital-theme-toggle-btn");
+        const digitalThemeIcon = document.getElementById("digital-theme-icon");
+        const digitalThemeText = document.getElementById("digital-theme-text");
+        let digitalTheme = localStorage.getItem("clockweb_theme_v1") || "dark";
+        function applyDigitalTheme(th, save = true) {
+          digitalTheme = th === "light" ? "light" : "dark";
+          if (digitalTheme === "light") {
+            document.documentElement.setAttribute("data-theme", "light");
+            document.body.classList.add("light-theme");
+          } else {
+            document.documentElement.removeAttribute("data-theme");
+            document.body.classList.remove("light-theme");
+          }
+          if (digitalThemeIcon) digitalThemeIcon.textContent = digitalTheme === "light" ? "☀️" : "🌙";
+          if (digitalThemeText) digitalThemeText.textContent = digitalTheme === "light" ? "Light" : "Dark";
+          if (save) {
+            try { localStorage.setItem("clockweb_theme_v1", digitalTheme); } catch (e) {}
+          }
+        }
+        if (digitalThemeBtn) {
+          digitalThemeBtn.addEventListener("click", () => {
+            applyDigitalTheme(digitalTheme === "dark" ? "light" : "dark", true);
+          });
+        }
+        applyDigitalTheme(digitalTheme, false);
+
         if (config.bgImage.startsWith("data:")) field("bgImage").value = "";
         let saveTimer;
         function save() {
@@ -2089,7 +2353,65 @@
         document
           .getElementById("transfer-link")
           .addEventListener("click", copyShareLink);
+
+        function setPreviewText(id, text) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = `(${text})`;
+        }
+
+        function updateSectionPreviews() {
+          const hrMode = field("is12Hour") && field("is12Hour").checked ? "12h" : "24h";
+          const secMode = field("showSeconds") && field("showSeconds").checked ? "+sec" : "no sec";
+          const clkScale = Math.round(Number((field("scale") && field("scale").value) || 1) * 100) + "%";
+          const clkFont = (field("clockFont") && field("clockFont").value) || "calibri";
+          setPreviewText("preview-clock", `${hrMode} · ${secMode} · ${clkScale} · ${clkFont}`);
+
+          const gregShown = field("showDate") && field("showDate").checked;
+          const gregFmt = (field("dateFormat") && field("dateFormat").value) || "";
+          setPreviewText("preview-gregorian", gregShown ? `Shown · ${gregFmt}` : "Hidden");
+
+          const hebShown = field("showHebrew") && field("showHebrew").checked;
+          const hebFmt = (field("hebrewDateFormat") && field("hebrewDateFormat").value) || "";
+          setPreviewText("preview-hebrew", hebShown ? `Shown · ${hebFmt}` : "Hidden");
+
+          const sunShown = field("showSun") && field("showSun").checked;
+          const sunEvt = (field("sunEvent") && field("sunEvent").value) || "next";
+          const sunIco = (field("sunIcon") && field("sunIcon").value) || "emoji";
+          setPreviewText("preview-sun", sunShown ? `Shown · ${sunEvt} · ${sunIco}` : "Hidden");
+
+          const cityEl = field("city");
+          const cityLabel =
+            cityEl && cityEl.options && cityEl.selectedIndex >= 0
+              ? cityEl.options[cityEl.selectedIndex].textContent
+              : "Jerusalem";
+          const regVal = (field("region") && field("region").value) === "diaspora" ? "Diaspora" : "Israel";
+          const parShown = field("showParashah") && field("showParashah").checked ? "Parashah ON" : "Parashah OFF";
+          setPreviewText("preview-place", `${cityLabel} · ${regVal} · ${parShown}`);
+
+          const fitOn = field("fitScreen") && field("fitScreen").checked ? "Auto-fit ON" : "Auto-fit OFF";
+          const padPx = ((field("screenPadding") && field("screenPadding").value) || "16") + "px";
+          setPreviewText("preview-screen", `${fitOn} · Padding ${padPx}`);
+
+          const gradOn = field("gradientEnabled") && field("gradientEnabled").checked ? "Gradient ON" : "Solid BG";
+          const motVal = (field("motion") && field("motion").value) || "none";
+          setPreviewText("preview-appearance", `${gradOn} · Motion: ${motVal}`);
+
+          const n1 = (field("note1Text") && field("note1Text").value.trim()) || "";
+          const n2 = (field("note2Text") && field("note2Text").value.trim()) || "";
+          const activeNotes = [n1, n2].filter(Boolean).length;
+          setPreviewText("preview-notes", activeNotes > 0 ? `${activeNotes} active note(s)` : "No active notes");
+
+          const savedCount = readDesigns().length;
+          setPreviewText("preview-profiles", `${savedCount} saved preset(s) · Export / Import`);
+        }
+
+        form.addEventListener("input", updateSectionPreviews);
+        form.addEventListener("change", updateSectionPreviews);
+        document.getElementById("design-save").addEventListener("click", () => setTimeout(updateSectionPreviews, 50));
+        document.getElementById("design-list").addEventListener("click", () => setTimeout(updateSectionPreviews, 50));
+
         renderDesigns();
+        updateSectionPreviews();
         const designNotice = sessionStorage.getItem(DESIGN_NOTICE_KEY);
         if (designNotice) {
           sessionStorage.removeItem(DESIGN_NOTICE_KEY);

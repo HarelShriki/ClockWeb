@@ -194,7 +194,6 @@ Ticks are synthesized live in the browser using the Web Audio API without requir
 An ambient canvas background engine ([particles.js](file:///C:/github_harelsh/ClockWeb/CASIO/particles.js)) connects particles via dynamic proximity distance webs:
 - **Repulsion/Attraction**: Cursor pushes and interacts with floating nodes.
 - **Theme Adaptation**: Automatically shifts color themes based on the active watch model:
-  - Tactical Green Resin (`CASIO-GAC-2500-3A`): Emerald Green `rgba(56, 222, 126, ...)`.
   - Vector Monochrome (`CASIO-GAC-2500-3A - VECTOR BW`): Silver Graphite `rgba(220, 225, 230, ...)`.
 - **Shockwave Tick Pulse**: On every second change, an expanding radial shockwave propagates through the particle field.
 

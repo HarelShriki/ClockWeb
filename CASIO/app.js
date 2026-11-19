@@ -1,7 +1,6 @@
 /**
  * Casio G-Shock Multi-Model Engine & Screensaver
  * Supports:
- *  - CASIO-GAC-2500-3A (Original Green Resin)
  *  - CASIO-GAC-2500-3A - VECTOR BW (With Strap)
  *  - CASIO-GAC-2500-3A - VECTOR BW (Dial Only)
  *
@@ -9,47 +8,6 @@
  */
 
 const WATCH_MODELS = {
-  'CASIO-GAC-2500-3A': {
-    name: 'GAC-2500-3A (Green Resin)',
-    folder: 'Watch/CASIO-GAC-2500-3A',
-    dialPng: 'Watch/CASIO-GAC-2500-3A/png/clock clean.png',
-    dialWebp: 'Watch/CASIO-GAC-2500-3A/clock clean.webp',
-    dialMap: 'Watch/CASIO-GAC-2500-3A/map/clock clean.png',
-    handHour: 'Watch/CASIO-GAC-2500-3A/png/hands Hour.png',
-    handMinute: 'Watch/CASIO-GAC-2500-3A/png/hands Minute.png',
-    handSecond: 'Watch/CASIO-GAC-2500-3A/png/hands second.png',
-    dialNativeW: 1024,
-    dialNativeH: 1024,
-    aspectRatio: 1.0,
-    centerX: 50.10,
-    centerY: 48.68,
-    subdialX: 31.45,
-    subdialY: 49.13,
-    dateX: 77.83,
-    dateY: 49.90,
-    dateW: 5.37,
-    dateH: 12.60,
-    dateArcAngle: 8.5, // Circular date disc radius arc angle (deg)
-    hourNativeW: 215,
-    hourNativeH: 854,
-    hourPivotX: 51.16,
-    hourPivotY: 70.91,
-    hourScale: 0.395,
-    hourRotOffset: 0,
-    minNativeW: 205,
-    minNativeH: 1058,
-    minPivotX: 49.50,
-    minPivotY: 80.96,
-    minScale: 0.395,
-    minRotOffset: 0,
-    secNativeW: 131,
-    secNativeH: 584,
-    secPivotX: 46.97,
-    secPivotY: 58.06,
-    secScale: 0.258,
-    secRotOffset: 0,
-    particleTheme: 'green'
-  },
   'CASIO-GAC-2500-3A-VECTOR-BW-STRAP': {
     name: 'GAC-2500-3A Vector BW (With Strap)',
     folder: 'Watch/CASIO-GAC-2500-3A - VECTOR BW',
@@ -186,7 +144,7 @@ class CasioWatchApp {
     } else if (savedModel && WATCH_MODELS[savedModel]) {
       this.activeModelKey = savedModel;
     } else {
-      this.activeModelKey = 'CASIO-GAC-2500-3A';
+      this.activeModelKey = 'CASIO-GAC-2500-3A-VECTOR-BW-STRAP';
     }
     this.config = Object.assign({}, WATCH_MODELS[this.activeModelKey]);
 
@@ -359,6 +317,7 @@ class CasioWatchApp {
     const valText = document.getElementById('val-motion-speed');
     if (slider) slider.value = speed;
     if (valText) valText.textContent = `${speed.toFixed(1)}x`;
+    this.updateCalibrationSummaries();
   }
 
   // --- Kinetic Organic Vector Drift Engine ---
@@ -530,6 +489,24 @@ class CasioWatchApp {
 
     // Update Calibration SVG Guides
     this.updateCalibrationSVG();
+    this.updateCalibrationSummaries();
+  }
+
+  updateCalibrationSummaries() {
+    if (!this.config) return;
+    const setSum = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `(${text})`;
+    };
+    const pct = Math.round((this.screenScale || 0.98) * 100);
+    setSum('calib-sum-1', `${pct}%`);
+    setSum('calib-sum-2', `${Number(this.config.centerX).toFixed(2)}%, ${Number(this.config.centerY).toFixed(2)}%`);
+    setSum('calib-sum-3', `${Number(this.config.subdialX).toFixed(2)}%, ${Number(this.config.subdialY).toFixed(2)}% · ${Number(this.config.secScale).toFixed(3)}x`);
+    setSum('calib-sum-4', `${Number(this.config.hourPivotX).toFixed(2)}%, ${Number(this.config.hourPivotY).toFixed(2)}% · ${Number(this.config.hourScale).toFixed(3)}x`);
+    setSum('calib-sum-5', `${Number(this.config.minPivotX).toFixed(2)}%, ${Number(this.config.minPivotY).toFixed(2)}% · ${Number(this.config.minScale).toFixed(3)}x`);
+    const arc = this.config.dateArcAngle !== undefined ? this.config.dateArcAngle : 8.5;
+    setSum('calib-sum-6', `${Number(this.config.dateX).toFixed(2)}%, ${Number(this.config.dateY).toFixed(2)}% · ${Number(arc).toFixed(1)}°`);
+    setSum('calib-sum-7', `${Number(this.motionSpeedFactor || 1.2).toFixed(1)}x`);
   }
 
   updateCalibrationSVG() {
@@ -992,6 +969,27 @@ class CasioWatchApp {
         this.applyConfig();
       });
     }
+
+    // Open All / Close All Calibration Accordions Button
+    const calibToggleAllBtn = document.getElementById('calib-toggle-all-btn');
+    const getCalibDetails = () => Array.from(document.querySelectorAll('#calibration-drawer details.control-group'));
+    const syncCalibToggleBtn = () => {
+      if (!calibToggleAllBtn) return;
+      const groups = getCalibDetails();
+      const allOpen = groups.length > 0 && groups.every(d => d.open);
+      calibToggleAllBtn.textContent = allOpen ? 'Close All' : 'Open All';
+      calibToggleAllBtn.setAttribute('aria-expanded', String(allOpen));
+    };
+    if (calibToggleAllBtn) {
+      calibToggleAllBtn.addEventListener('click', () => {
+        const groups = getCalibDetails();
+        const shouldOpen = !groups.every(d => d.open);
+        groups.forEach(d => { d.open = shouldOpen; });
+        syncCalibToggleBtn();
+      });
+    }
+    getCalibDetails().forEach(d => d.addEventListener('toggle', syncCalibToggleBtn));
+    syncCalibToggleBtn();
   }
 
   // --- Real-time Calibration Sliders ---

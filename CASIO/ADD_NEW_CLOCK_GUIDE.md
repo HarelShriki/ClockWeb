@@ -118,7 +118,6 @@ In [index.html](file:///C:/github_harelsh/ClockWeb/CASIO/index.html), add the `<
 
 ```html
 <select id="model-selector" class="model-select">
-  <option value="CASIO-GAC-2500-3A">GAC-2500-3A (Green Resin)</option>
   <option value="CASIO-GAC-2500-3A-VECTOR-BW-STRAP">GAC-2500-3A Vector BW (With Strap)</option>
   <option value="CASIO-GAC-2500-3A-VECTOR-BW-DIAL">GAC-2500-3A Vector BW (Dial Only)</option>
   <option value="MY-MODEL-KEY">Your Model Name Here</option>

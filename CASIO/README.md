@@ -1,6 +1,6 @@
 # Casio G-Shock Analog Timepiece & Screensaver Web Framework
 
-An interactive, responsive screensaver timepiece web application featuring authentic Casio G-Shock analog models, including the **GAC-2500-3A ("CasioNaut")** and **GAC-2500-3A Vector BW** (both Full Strap and Dial-only variants).
+An interactive, responsive screensaver timepiece web application featuring authentic Casio G-Shock analog models, including the **GAC-2500-3A Vector BW** (both Full Strap and Dial-only variants).
 
 ---
 
@@ -20,7 +20,6 @@ For quick instructions on onboarding a new model:
    - Dynamic viewport sizing covers from upper to bottom of screen across any display resolution.
 
 2. **Multi-Model Architecture**:
-   - **GAC-2500-3A (Original Green Resin)**: Authentic dark green resin case with tactical green particle theme.
    - **GAC-2500-3A Vector BW (With Strap)**: 1088x1552 full-case presentation with monochrome silver particle theme.
    - **GAC-2500-3A Vector BW (Dial Only)**: 1072x963 wide dial presentation.
 
@@ -59,9 +58,6 @@ CASIO/
 ├── tools/
 │   └── analyze_markers.py           # Automated green circle marker calibration script
 ├── Watch/                           # Modular watch models repository
-│   ├── CASIO-GAC-2500-3A/           # Green Resin model
-│   │   ├── png/                     # Authentic transparent dial & hand PNGs
-│   │   └── map/                     # Calibration reference marker images
 │   └── CASIO-GAC-2500-3A - VECTOR BW/ # Vector Black & White model (Strap & Dial)
 │       ├── png/
 │       └── map/
