@@ -92,6 +92,23 @@ For tall watches ($AR \le 1.0$):
 $$\text{frameH} = \text{maxH}, \quad \text{frameW} = \text{frameH} \times AR$$
 $$\text{If } \text{frameW} > \text{maxW}: \quad \text{frameW} = \text{maxW}, \quad \text{frameH} = \frac{\text{frameW}}{AR}$$
 
+### Horizontal Viewport Alignment (Left / Center / Right)
+To support multi-zone and split-screen dashboards (such as Volumio CoreZoneDisplay where audio player metadata, album art, or visualizers require viewport space beside the timepiece), the stage container supports configurable horizontal alignment:
+$$\text{align} \in \{\text{left}, \text{center}, \text{right}\}$$
+
+In CSS Flexbox:
+```css
+.screensaver-stage.align-left   { justify-content: flex-start; }
+.screensaver-stage.align-center { justify-content: center; }
+.screensaver-stage.align-right  { justify-content: flex-end; }
+```
+An edge margin inset $\text{pad}_X \in [0\%, 25\%]$ (default $2.5\%$) prevents the watch bezel from clipping viewport boundaries:
+```css
+padding-left: var(--stage-pad-x, clamp(1rem, 2.5vw, 3rem));
+padding-right: var(--stage-pad-x, clamp(1rem, 2.5vw, 3rem));
+```
+Kinetic 3D drift applies smoothly as local relative vector translations $\vec{T} = (\Delta x, \Delta y)$ on `.watch-frame`, preserving organic motion regardless of whether the watch sits on the left, right, or center.
+
 ### Dynamic Hand Scaling & Concentricity
 Let $S_{\text{pixel}}$ be the scale factor from native image pixels to CSS rendered pixels:
 $$S_{\text{pixel}} = \frac{\text{frameW}}{W_{\text{dialNative}}}$$
@@ -194,7 +211,6 @@ Ticks are synthesized live in the browser using the Web Audio API without requir
 An ambient canvas background engine ([particles.js](file:///C:/github_harelsh/ClockWeb/CASIO/particles.js)) connects particles via dynamic proximity distance webs:
 - **Repulsion/Attraction**: Cursor pushes and interacts with floating nodes.
 - **Theme Adaptation**: Automatically shifts color themes based on the active watch model:
-  - Tactical Green Resin (`CASIO-GAC-2500-3A`): Emerald Green `rgba(56, 222, 126, ...)`.
   - Vector Monochrome (`CASIO-GAC-2500-3A - VECTOR BW`): Silver Graphite `rgba(220, 225, 230, ...)`.
 - **Shockwave Tick Pulse**: On every second change, an expanding radial shockwave propagates through the particle field.
 

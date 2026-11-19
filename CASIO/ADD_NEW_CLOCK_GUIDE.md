@@ -60,6 +60,8 @@ python tools/analyze_markers.py "<MODEL_NAME>"
 
 > **Screen Coverage, Zoom (>100%) & Fullscreen**: Watches automatically scale to cover from upper to bottom of the screen (98% to 100% height) across any resolution and in fullscreen mode. Users can modify the screen size and zoom beyond 100% (from 40% up to 200% to deeply focus on dial details) using the `Screen: 98%` cycle button in the header bar, keyboard shortcuts (<kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd>), or the Screen Coverage slider in the calibration drawer.
 
+> **Horizontal Alignment (Left / Center / Right)**: Timepieces support positioning on the Left, Center, or Right side of the viewport (`align: 'left' | 'center' | 'right'`). This enables side-by-side display with media players and now-playing metadata in Volumio CoreZoneDisplay. Tweak via the header button (`Align: Center`), Calibration Drawer Section 8 (with edge margin slider), keyboard hotkeys (<kbd>A</kbd>, <kbd>L</kbd>, <kbd>R</kbd>, <kbd>C</kbd>), URL param `?align=left|right|center`, or postMessage `CLOCKWEB_SET_ALIGN`. Persists per model in `localStorage`.
+
 ---
 
 ## 3. Register the Model in `app.js`
@@ -118,7 +120,6 @@ In [index.html](file:///C:/github_harelsh/ClockWeb/CASIO/index.html), add the `<
 
 ```html
 <select id="model-selector" class="model-select">
-  <option value="CASIO-GAC-2500-3A">GAC-2500-3A (Green Resin)</option>
   <option value="CASIO-GAC-2500-3A-VECTOR-BW-STRAP">GAC-2500-3A Vector BW (With Strap)</option>
   <option value="CASIO-GAC-2500-3A-VECTOR-BW-DIAL">GAC-2500-3A Vector BW (Dial Only)</option>
   <option value="MY-MODEL-KEY">Your Model Name Here</option>

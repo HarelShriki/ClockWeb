@@ -1,6 +1,6 @@
 # Casio G-Shock Analog Timepiece & Screensaver Web Framework
 
-An interactive, responsive screensaver timepiece web application featuring authentic Casio G-Shock analog models, including the **GAC-2500-3A ("CasioNaut")** and **GAC-2500-3A Vector BW** (both Full Strap and Dial-only variants).
+An interactive, responsive screensaver timepiece web application featuring authentic Casio G-Shock analog models, including the **GAC-2500-3A Vector BW** (both Full Strap and Dial-only variants).
 
 ---
 
@@ -20,7 +20,6 @@ For quick instructions on onboarding a new model:
    - Dynamic viewport sizing covers from upper to bottom of screen across any display resolution.
 
 2. **Multi-Model Architecture**:
-   - **GAC-2500-3A (Original Green Resin)**: Authentic dark green resin case with tactical green particle theme.
    - **GAC-2500-3A Vector BW (With Strap)**: 1088x1552 full-case presentation with monochrome silver particle theme.
    - **GAC-2500-3A Vector BW (Dial Only)**: 1072x963 wide dial presentation.
 
@@ -28,17 +27,23 @@ For quick instructions on onboarding a new model:
    - The 3-day date window (yesterday, today, tomorrow) follows the circular radius curve of the internal rotating date wheel instead of a rigid vertical line.
    - Yesterday tilts counter-clockwise and shifts inwards; tomorrow tilts clockwise and shifts inwards.
 
-4. **Kinetic Randomized 3D Vector Motion**:
+4. **Horizontal Screen Alignment (Left / Center / Right)**:
+   - Both Clock 1 (**GAC-2500-3A Vector BW With Strap**) and Clock 2 (**GAC-2500-3A Vector BW Dial Only**) support instant Left, Center, or Right horizontal alignment.
+   - Ideal for split screens in Volumio CoreZoneDisplay (leaving room for now-playing metadata, album art, or VU meters).
+   - Controllable via the quick header button (`Align: Left ◧ / Center ◫ / Right ◨`), calibration drawer Section 8 (with edge margin slider), keyboard hotkeys (<kbd>A</kbd>, <kbd>L</kbd>, <kbd>R</kbd>, <kbd>C</kbd>), URL parameters (`?align=left|right|center`), or MainClockSelector.
+   - Each clock variant remembers its own alignment preference in `localStorage`.
+
+5. **Kinetic Randomized 3D Vector Motion**:
    - Organic, non-repeating 3D wander drift with critically damped spring interpolation.
    - **Default OFF** with explicit **"✓" (V) checkmark** activation.
    - Segmented speed bars selector: `SPEED [ ▂▃▄ ]` for 0.5x, 0.8x, 1.2x, 2.0x.
 
-5. **Screensaver & Fullscreen Auto-Attachment**:
+6. **Screensaver & Fullscreen Auto-Attachment**:
    - In screensaver mode, HUD elements auto-fade with zero layout shift.
    - Automatically attaches edge-to-edge (100% height) in Fullscreen mode.
    - Sizing controls via header button (`Screen: 98%`), calibration slider, or hotkeys (<kbd>+</kbd> / <kbd>-</kbd> / <kbd>0</kbd>).
 
-6. **Automated Marker Calibration**:
+7. **Automated Marker Calibration**:
    - Programmatic center extraction tool ([tools/analyze_markers.py](file:///C:/github_harelsh/ClockWeb/CASIO/tools/analyze_markers.py)) using 8-way flood fill clustering on green markers (`RGB 34, 177, 76`).
    - Built-in real-time calibration drawer with live crosshair guides and one-click JSON export.
 
@@ -59,9 +64,6 @@ CASIO/
 ├── tools/
 │   └── analyze_markers.py           # Automated green circle marker calibration script
 ├── Watch/                           # Modular watch models repository
-│   ├── CASIO-GAC-2500-3A/           # Green Resin model
-│   │   ├── png/                     # Authentic transparent dial & hand PNGs
-│   │   └── map/                     # Calibration reference marker images
 │   └── CASIO-GAC-2500-3A - VECTOR BW/ # Vector Black & White model (Strap & Dial)
 │       ├── png/
 │       └── map/
@@ -71,6 +73,10 @@ CASIO/
 ---
 
 ## ⌨️ Keyboard Shortcuts
+- <kbd>A</kbd>: Cycle alignment (Center → Left → Right)
+- <kbd>L</kbd>: Align clock to Left
+- <kbd>R</kbd>: Align clock to Right
+- <kbd>C</kbd>: Align clock to Center
 - <kbd>F</kbd>: Toggle Fullscreen mode
 - <kbd>+</kbd> / <kbd>=</kbd>: Increase screen size (+2%)
 - <kbd>-</kbd> / <kbd>_</kbd>: Decrease screen size (-2%)

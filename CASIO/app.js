@@ -1,7 +1,6 @@
 /**
  * Casio G-Shock Multi-Model Engine & Screensaver
  * Supports:
- *  - CASIO-GAC-2500-3A (Original Green Resin)
  *  - CASIO-GAC-2500-3A - VECTOR BW (With Strap)
  *  - CASIO-GAC-2500-3A - VECTOR BW (Dial Only)
  *
@@ -9,47 +8,6 @@
  */
 
 const WATCH_MODELS = {
-  'CASIO-GAC-2500-3A': {
-    name: 'GAC-2500-3A (Green Resin)',
-    folder: 'Watch/CASIO-GAC-2500-3A',
-    dialPng: 'Watch/CASIO-GAC-2500-3A/png/clock clean.png',
-    dialWebp: 'Watch/CASIO-GAC-2500-3A/clock clean.webp',
-    dialMap: 'Watch/CASIO-GAC-2500-3A/map/clock clean.png',
-    handHour: 'Watch/CASIO-GAC-2500-3A/png/hands Hour.png',
-    handMinute: 'Watch/CASIO-GAC-2500-3A/png/hands Minute.png',
-    handSecond: 'Watch/CASIO-GAC-2500-3A/png/hands second.png',
-    dialNativeW: 1024,
-    dialNativeH: 1024,
-    aspectRatio: 1.0,
-    centerX: 50.10,
-    centerY: 48.68,
-    subdialX: 31.45,
-    subdialY: 49.13,
-    dateX: 77.83,
-    dateY: 49.90,
-    dateW: 5.37,
-    dateH: 12.60,
-    dateArcAngle: 8.5, // Circular date disc radius arc angle (deg)
-    hourNativeW: 215,
-    hourNativeH: 854,
-    hourPivotX: 51.16,
-    hourPivotY: 70.91,
-    hourScale: 0.395,
-    hourRotOffset: 0,
-    minNativeW: 205,
-    minNativeH: 1058,
-    minPivotX: 49.50,
-    minPivotY: 80.96,
-    minScale: 0.395,
-    minRotOffset: 0,
-    secNativeW: 131,
-    secNativeH: 584,
-    secPivotX: 46.97,
-    secPivotY: 58.06,
-    secScale: 0.258,
-    secRotOffset: 0,
-    particleTheme: 'green'
-  },
   'CASIO-GAC-2500-3A-VECTOR-BW-STRAP': {
     name: 'GAC-2500-3A Vector BW (With Strap)',
     folder: 'Watch/CASIO-GAC-2500-3A - VECTOR BW',
@@ -89,6 +47,8 @@ const WATCH_MODELS = {
     secPivotY: 42.01,
     secScale: 0.307,
     secRotOffset: 180, // tip points downwards at y=489 in raw asset
+    align: 'center',
+    alignInset: 2.5,
     particleTheme: 'mono'
   },
   'CASIO-GAC-2500-3A-VECTOR-BW-DIAL': {
@@ -130,6 +90,8 @@ const WATCH_MODELS = {
     secPivotY: 42.01,
     secScale: 0.307,
     secRotOffset: 180,
+    align: 'center',
+    alignInset: 2.5,
     particleTheme: 'mono'
   }
 };
@@ -161,6 +123,14 @@ class CasioWatchApp {
     this.toggleScreenScaleBtn = document.getElementById('toggle-screen-scale');
     this.screenScaleText = document.getElementById('screen-scale-text');
 
+    // Horizontal Alignment Elements
+    this.screensaverStage = document.getElementById('screensaver-stage') || document.querySelector('.screensaver-stage');
+    this.toggleAlignBtn = document.getElementById('toggle-align');
+    this.alignText = document.getElementById('align-text');
+    this.alignIconLeft = document.getElementById('align-icon-left');
+    this.alignIconCenter = document.getElementById('align-icon-center');
+    this.alignIconRight = document.getElementById('align-icon-right');
+
     // HUD Elements
     this.hudDateVal = document.getElementById('hud-date-val');
     this.hudDigitalTime = document.getElementById('hud-digital-time');
@@ -175,6 +145,10 @@ class CasioWatchApp {
     // Active Model & Config (Supports ?model= URL param & localStorage persistence)
     const urlParams = new URLSearchParams(window.location.search);
     const paramModel = urlParams.get('model');
+    const paramAlign = urlParams.get('align') || urlParams.get('position');
+    this.initialParamAlign = paramAlign && ['left', 'center', 'right'].includes(paramAlign.toLowerCase()) ? paramAlign.toLowerCase() : null;
+    this.currentAlign = 'center';
+    this.currentAlignInset = 2.5;
     let savedModel = null;
     try {
       savedModel = localStorage.getItem('casioActiveModelKey');
@@ -186,7 +160,7 @@ class CasioWatchApp {
     } else if (savedModel && WATCH_MODELS[savedModel]) {
       this.activeModelKey = savedModel;
     } else {
-      this.activeModelKey = 'CASIO-GAC-2500-3A';
+      this.activeModelKey = 'CASIO-GAC-2500-3A-VECTOR-BW-STRAP';
     }
     this.config = Object.assign({}, WATCH_MODELS[this.activeModelKey]);
 
@@ -207,6 +181,17 @@ class CasioWatchApp {
     this.lastTargetTime = 0;
     this.lastFrameTime = performance.now();
     this.mouseTilt = { x: 0, y: 0 };
+
+    // Full-clock glass glare (shine) settings
+    this.watchGlare = document.getElementById('watch-glare');
+    this.glareSide = 'center';
+    this.glareIntensity = 0.7;
+    try {
+      const gs = localStorage.getItem('casio_glare_side');
+      if (gs) this.glareSide = gs;
+      const gi = localStorage.getItem('casio_glare_intensity');
+      if (gi !== null && !isNaN(parseFloat(gi))) this.glareIntensity = parseFloat(gi);
+    } catch (e) {}
 
     // Screen Coverage & Zoom (Supports > 100% Zoom)
     this.screenScale = 0.98; // Default: 98% height (covers from upper to bottom of screen)
@@ -245,8 +230,13 @@ class CasioWatchApp {
     }
     this.setPageScroll(this.pageScrollEnabled, false);
     this.switchModel(this.activeModelKey);
+    if (this.initialParamAlign) {
+      this.setAlignment(this.initialParamAlign, true, false);
+    }
     this.bindEvents();
     this.bindCalibrationSliders();
+    this.setGlareSide(this.glareSide, false);
+    this.setGlareIntensity(this.glareIntensity, false);
     this.setupScreensaverIdle();
     this.setMotionSpeed(this.currentSpeedLevel);
     this.tick();
@@ -261,6 +251,12 @@ class CasioWatchApp {
     if (this.pageScrollText) {
       this.pageScrollText.textContent = this.pageScrollEnabled ? 'Scroll: ON' : 'Scroll: OFF';
     }
+    const drawerScrollBtn = document.getElementById('btn-align-scroll');
+    if (drawerScrollBtn) {
+      drawerScrollBtn.classList.toggle('active', this.pageScrollEnabled);
+      drawerScrollBtn.textContent = this.pageScrollEnabled ? '↕ Scroll: ON' : '↕ Scroll: OFF';
+    }
+    if (this.config) this.updateCalibrationSummaries();
     try {
       localStorage.setItem('clockweb_allow_scroll_v1', String(this.pageScrollEnabled));
     } catch (e) {}
@@ -300,6 +296,13 @@ class CasioWatchApp {
     if (this.handMinute) this.handMinute.src = this.config.handMinute;
     if (this.handSecond) this.handSecond.src = this.config.handSecond;
 
+    // Clip the glare to the full watch silhouette (case + strap + dial)
+    if (this.watchGlare) {
+      const maskUrl = `url("${encodeURI(this.config.dialPng)}")`;
+      this.watchGlare.style.webkitMaskImage = maskUrl;
+      this.watchGlare.style.maskImage = maskUrl;
+    }
+
     // Update Particle Web Theme
     if (this.particleEngine && this.config.particleTheme) {
       this.particleEngine.setTheme(this.config.particleTheme);
@@ -313,8 +316,99 @@ class CasioWatchApp {
     if (this.dialWebpImg) this.dialWebpImg.classList.remove('active');
     if (this.dialMapImg) this.dialMapImg.classList.remove('active');
 
+    // Restore Model-specific Horizontal Alignment
+    let savedAlign = null;
+    try {
+      savedAlign = localStorage.getItem('casio_align_' + modelKey);
+    } catch (e) {}
+    const initialAlign = savedAlign || this.config.align || 'center';
+    this.setAlignment(initialAlign, false, false);
+
+    let savedInset = null;
+    try {
+      savedInset = localStorage.getItem('casio_inset_' + modelKey);
+    } catch (e) {}
+    const initialInset = savedInset !== null ? parseFloat(savedInset) : (this.config.alignInset !== undefined ? this.config.alignInset : 2.5);
+    this.setAlignInset(initialInset, false);
+
     this.applyConfig();
     this.syncSlidersFromConfig();
+  }
+
+  // --- Horizontal Clock Alignment (Left / Center / Right) ---
+  setAlignment(align, save = true, notifyParent = true) {
+    const norm = String(align || 'center').toLowerCase().trim();
+    const valid = ['left', 'center', 'right'].includes(norm) ? norm : 'center';
+    this.currentAlign = valid;
+
+    if (this.screensaverStage) {
+      this.screensaverStage.classList.remove('align-left', 'align-center', 'align-right');
+      this.screensaverStage.classList.add(`align-${valid}`);
+    }
+
+    // Update Header Button
+    if (this.alignText) {
+      const label = valid.charAt(0).toUpperCase() + valid.slice(1);
+      this.alignText.textContent = `Align: ${label}`;
+    }
+    if (this.alignIconLeft) this.alignIconLeft.style.display = valid === 'left' ? 'inline-block' : 'none';
+    if (this.alignIconCenter) this.alignIconCenter.style.display = valid === 'center' ? 'inline-block' : 'none';
+    if (this.alignIconRight) this.alignIconRight.style.display = valid === 'right' ? 'inline-block' : 'none';
+
+    // Update Drawer Segmented Buttons
+    ['left', 'center', 'right'].forEach((pos) => {
+      const btn = document.getElementById(`btn-align-${pos}`);
+      if (btn) btn.classList.toggle('active', pos === valid);
+    });
+
+    if (save) {
+      try {
+        localStorage.setItem('casio_align_' + this.activeModelKey, valid);
+      } catch (e) {}
+      this.config.align = valid;
+    }
+
+    this.updateCalibrationSummaries();
+
+    if (notifyParent && window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage({
+          type: 'CLOCKWEB_CASIO_ALIGN_CHANGED',
+          model: this.activeModelKey,
+          align: valid
+        }, '*');
+      } catch (e) {}
+    }
+  }
+
+  cycleAlignment() {
+    const sequence = ['center', 'left', 'right'];
+    const currentIndex = sequence.indexOf(this.currentAlign || 'center');
+    const nextAlign = sequence[(currentIndex + 1) % sequence.length];
+    this.setAlignment(nextAlign, true, true);
+  }
+
+  setAlignInset(val, save = true) {
+    const inset = Math.max(0, Math.min(25, parseFloat(val) || 0));
+    this.currentAlignInset = inset;
+
+    if (this.screensaverStage) {
+      this.screensaverStage.style.setProperty('--stage-pad-x', `${inset}%`);
+    }
+
+    const slider = document.getElementById('slider-align-inset');
+    const label = document.getElementById('val-align-inset');
+    if (slider) slider.value = inset;
+    if (label) label.textContent = `${inset}%`;
+
+    if (save) {
+      try {
+        localStorage.setItem('casio_inset_' + this.activeModelKey, String(inset));
+      } catch (e) {}
+      this.config.alignInset = inset;
+    }
+
+    this.updateCalibrationSummaries();
   }
 
   // --- Dynamic Screen Size & Zoom Modifier (40% - 200%) ---
@@ -359,64 +453,102 @@ class CasioWatchApp {
     const valText = document.getElementById('val-motion-speed');
     if (slider) slider.value = speed;
     if (valText) valText.textContent = `${speed.toFixed(1)}x`;
+    this.updateCalibrationSummaries();
   }
 
   // --- Kinetic Organic Vector Drift Engine ---
   updateKineticMotion(now) {
     if (!this.watchFrame) return;
 
-    const dt = Math.min(0.08, (now - this.lastFrameTime) / 1000);
+    // Frame-rate independent delta time (clamped to avoid jumps after tab switch)
+    const dt = Math.min(0.05, Math.max(0, (now - this.lastFrameTime) / 1000));
     this.lastFrameTime = now;
 
-    if (!this.motionActive) {
-      // Ease back smoothly to static rest (0, 0, 0)
-      const easeBack = Math.min(1.0, dt * 5.0);
-      this.currentMotion.x += (0 - this.currentMotion.x) * easeBack;
-      this.currentMotion.y += (0 - this.currentMotion.y) * easeBack;
-      this.currentMotion.rotX += (0 - this.currentMotion.rotX) * easeBack;
-      this.currentMotion.rotY += (0 - this.currentMotion.rotY) * easeBack;
-      this.currentMotion.rotZ += (0 - this.currentMotion.rotZ) * easeBack;
+    // 1. Smooth motion envelope: fades the drift in/out instead of snapping on/off
+    const envTarget = this.motionActive ? 1 : 0;
+    this.motionEnvelope = this.motionEnvelope || 0;
+    this.motionEnvelope += (envTarget - this.motionEnvelope) * (1 - Math.exp(-dt * 1.6));
+    const env = this.motionEnvelope * this.motionEnvelope * (3 - 2 * this.motionEnvelope); // smoothstep
 
-      if (Math.abs(this.currentMotion.rotX) > 0.02 || Math.abs(this.currentMotion.rotY) > 0.02) {
-        this.watchFrame.style.transform = `perspective(1200px) translate3d(${this.currentMotion.x.toFixed(2)}px, ${this.currentMotion.y.toFixed(2)}px, 0) rotateX(${this.currentMotion.rotX.toFixed(2)}deg) rotateY(${this.currentMotion.rotY.toFixed(2)}deg) rotateZ(${this.currentMotion.rotZ.toFixed(2)}deg)`;
-      } else {
-        this.watchFrame.style.transform = '';
-      }
+    // 2. Continuous organic flow: layered incommensurate sine waves (no random target jumps).
+    //    Phase is accumulated so speed changes never cause a discontinuity.
+    this.motionPhase = (this.motionPhase || 0) + dt * 0.38 * (this.motionSpeedFactor || 1.2);
+    const t = this.motionPhase;
+    const flow = (a, b, c, p) =>
+      (Math.sin(t * a + p) * 0.6 + Math.sin(t * b + p * 1.7) * 0.28 + Math.sin(t * c + p * 2.3) * 0.12);
+
+    const target = {
+      x: flow(0.71, 1.37, 2.11, 0.0) * 12 * env,
+      y: flow(0.53, 1.19, 1.93, 1.3) * 9 * env,
+      rotX: flow(0.61, 1.29, 2.03, 2.1) * 4.2 * env + (this.mouseTilt.x || 0) * env,
+      rotY: flow(0.47, 1.11, 1.79, 3.7) * 5.4 * env + (this.mouseTilt.y || 0) * env,
+      rotZ: flow(0.33, 0.89, 1.51, 4.9) * 1.1 * env
+    };
+
+    // 3. Exponential smoothing on top (frame-rate independent) for silky interpolation
+    const k = 1 - Math.exp(-dt * 4.5);
+    const m = this.currentMotion;
+    m.x += (target.x - m.x) * k;
+    m.y += (target.y - m.y) * k;
+    m.rotX += (target.rotX - m.rotX) * k;
+    m.rotY += (target.rotY - m.rotY) * k;
+    m.rotZ += (target.rotZ - m.rotZ) * k;
+
+    const magnitude = Math.abs(m.rotX) + Math.abs(m.rotY) + Math.abs(m.x) * 0.05;
+    if (!this.motionActive && magnitude < 0.01) {
+      if (this.watchFrame.style.transform) this.watchFrame.style.transform = '';
+      this.updateGlare(0, 0, 0);
       return;
     }
 
-    // Pick new random 3D wander vectors periodically
-    const interval = 2800 / this.motionSpeedFactor;
-    if (now - this.lastTargetTime > interval) {
-      this.lastTargetTime = now;
-      const rx = (Math.random() - 0.5) * 2;
-      const ry = (Math.random() - 0.5) * 2;
-      const rRotX = (Math.random() - 0.5) * 2;
-      const rRotY = (Math.random() - 0.5) * 2;
-      const rRotZ = (Math.random() - 0.5) * 2;
+    this.watchFrame.style.transform =
+      `perspective(1200px) translate3d(${m.x.toFixed(3)}px, ${m.y.toFixed(3)}px, 0) ` +
+      `rotateX(${m.rotX.toFixed(3)}deg) rotateY(${m.rotY.toFixed(3)}deg) rotateZ(${m.rotZ.toFixed(3)}deg)`;
 
-      this.targetMotion.x = rx * 12;
-      this.targetMotion.y = ry * 9;
-      this.targetMotion.rotX = rRotX * 3.6;
-      this.targetMotion.rotY = rRotY * 4.6;
-      this.targetMotion.rotZ = rRotZ * 1.2;
+    this.updateGlare(m.rotX, m.rotY, env);
+  }
+
+  // --- Full-Clock Specular Glare (glass shine across the entire watch) ---
+  updateGlare(rotX, rotY, env) {
+    if (!this.watchGlare) return;
+    const intensity = this.glareIntensity !== undefined ? this.glareIntensity : 0.7;
+    const sideOffset = { left: -28, center: 0, right: 28 }[this.glareSide || 'center'] || 0;
+
+    // Light sweeps across the whole face following the tilt
+    const gx = 50 + sideOffset - rotY * 7.5;
+    const gy = 50 - rotX * 7.5;
+    const tilt = Math.min(1, (Math.abs(rotX) + Math.abs(rotY)) / 6);
+    const opacity = intensity * env * (0.45 + 0.55 * tilt);
+
+    const s = this.watchGlare.style;
+    s.setProperty('--glare-x', `${gx.toFixed(2)}%`);
+    s.setProperty('--glare-y', `${gy.toFixed(2)}%`);
+    s.setProperty('--glare-angle', `${(115 + rotY * 4 - rotX * 2).toFixed(2)}deg`);
+    s.opacity = opacity.toFixed(3);
+  }
+
+  setGlareSide(side, save = true) {
+    const valid = ['left', 'center', 'right'].includes(side) ? side : 'center';
+    this.glareSide = valid;
+    ['left', 'center', 'right'].forEach((pos) => {
+      const btn = document.getElementById(`btn-glare-${pos}`);
+      if (btn) btn.classList.toggle('active', pos === valid);
+    });
+    if (save) {
+      try { localStorage.setItem('casio_glare_side', valid); } catch (e) {}
     }
+  }
 
-    // Critically damped spring lerp towards target vector
-    const lerpSpeed = Math.min(1.0, dt * 1.7 * this.motionSpeedFactor);
-    this.currentMotion.x += (this.targetMotion.x - this.currentMotion.x) * lerpSpeed;
-    this.currentMotion.y += (this.targetMotion.y - this.currentMotion.y) * lerpSpeed;
-    this.currentMotion.rotX += (this.targetMotion.rotX - this.currentMotion.rotX) * lerpSpeed;
-    this.currentMotion.rotY += (this.targetMotion.rotY - this.currentMotion.rotY) * lerpSpeed;
-    this.currentMotion.rotZ += (this.targetMotion.rotZ - this.currentMotion.rotZ) * lerpSpeed;
-
-    const totalX = this.currentMotion.x;
-    const totalY = this.currentMotion.y;
-    const totalRotX = this.currentMotion.rotX + (this.mouseTilt.x || 0);
-    const totalRotY = this.currentMotion.rotY + (this.mouseTilt.y || 0);
-    const totalRotZ = this.currentMotion.rotZ;
-
-    this.watchFrame.style.transform = `perspective(1200px) translate3d(${totalX.toFixed(2)}px, ${totalY.toFixed(2)}px, 0) rotateX(${totalRotX.toFixed(2)}deg) rotateY(${totalRotY.toFixed(2)}deg) rotateZ(${totalRotZ.toFixed(2)}deg)`;
+  setGlareIntensity(val, save = true) {
+    const v = Math.max(0, Math.min(1, parseFloat(val)));
+    this.glareIntensity = isNaN(v) ? 0.7 : v;
+    const slider = document.getElementById('slider-glare');
+    const label = document.getElementById('val-glare');
+    if (slider) slider.value = Math.round(this.glareIntensity * 100);
+    if (label) label.textContent = `${Math.round(this.glareIntensity * 100)}%`;
+    if (save) {
+      try { localStorage.setItem('casio_glare_intensity', String(this.glareIntensity)); } catch (e) {}
+    }
   }
 
   // --- Responsive Coordinate & Sizing Layout ---
@@ -530,6 +662,27 @@ class CasioWatchApp {
 
     // Update Calibration SVG Guides
     this.updateCalibrationSVG();
+    this.updateCalibrationSummaries();
+  }
+
+  updateCalibrationSummaries() {
+    if (!this.config) return;
+    const setSum = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `(${text})`;
+    };
+    const pct = Math.round((this.screenScale || 0.98) * 100);
+    setSum('calib-sum-1', `${pct}%`);
+    setSum('calib-sum-2', `${Number(this.config.centerX).toFixed(2)}%, ${Number(this.config.centerY).toFixed(2)}%`);
+    setSum('calib-sum-3', `${Number(this.config.subdialX).toFixed(2)}%, ${Number(this.config.subdialY).toFixed(2)}% · ${Number(this.config.secScale).toFixed(3)}x`);
+    setSum('calib-sum-4', `${Number(this.config.hourPivotX).toFixed(2)}%, ${Number(this.config.hourPivotY).toFixed(2)}% · ${Number(this.config.hourScale).toFixed(3)}x`);
+    setSum('calib-sum-5', `${Number(this.config.minPivotX).toFixed(2)}%, ${Number(this.config.minPivotY).toFixed(2)}% · ${Number(this.config.minScale).toFixed(3)}x`);
+    const arc = this.config.dateArcAngle !== undefined ? this.config.dateArcAngle : 8.5;
+    setSum('calib-sum-6', `${Number(this.config.dateX).toFixed(2)}%, ${Number(this.config.dateY).toFixed(2)}% · ${Number(arc).toFixed(1)}°`);
+    setSum('calib-sum-7', `${Number(this.motionSpeedFactor || 1.2).toFixed(1)}x`);
+    const alignLabel = (this.currentAlign || 'center').charAt(0).toUpperCase() + (this.currentAlign || 'center').slice(1);
+    const insetVal = this.currentAlignInset !== undefined ? this.currentAlignInset : 2.5;
+    setSum('calib-sum-8', `${alignLabel} · ${Number(insetVal).toFixed(1)}% · Scroll ${this.pageScrollEnabled ? 'ON' : 'OFF'}`);
   }
 
   updateCalibrationSVG() {
@@ -744,8 +897,50 @@ class CasioWatchApp {
         this.switchModel(e.data.model);
       } else if (e.data.type === 'CLOCKWEB_SET_PAGE_SCROLL') {
         this.setPageScroll(Boolean(e.data.enabled), false);
+      } else if (e.data.type === 'CLOCKWEB_SET_ALIGN' && e.data.align) {
+        this.setAlignment(e.data.align, true, false);
+      } else if (e.data.type === 'CLOCKWEB_SET_ALIGN_INSET' && e.data.inset !== undefined) {
+        this.setAlignInset(e.data.inset, true);
       }
     });
+
+    // Clock Alignment Quick Button
+    if (this.toggleAlignBtn) {
+      this.toggleAlignBtn.addEventListener('click', () => {
+        this.cycleAlignment();
+      });
+    }
+
+    // Drawer Alignment Segmented Buttons
+    ['left', 'center', 'right'].forEach((pos) => {
+      const btn = document.getElementById(`btn-align-${pos}`);
+      if (btn) {
+        btn.addEventListener('click', () => {
+          this.setAlignment(pos, true, true);
+        });
+      }
+      // Glare light-source side buttons
+      const gBtn = document.getElementById(`btn-glare-${pos}`);
+      if (gBtn) {
+        gBtn.addEventListener('click', () => this.setGlareSide(pos, true));
+      }
+    });
+
+    // Glare intensity slider
+    const glareSlider = document.getElementById('slider-glare');
+    if (glareSlider) {
+      glareSlider.addEventListener('input', (e) => {
+        this.setGlareIntensity(parseFloat(e.target.value) / 100, true);
+      });
+    }
+
+    // Page Scroll toggle inside the Alignment section of the drawer
+    const drawerScrollBtn = document.getElementById('btn-align-scroll');
+    if (drawerScrollBtn) {
+      drawerScrollBtn.addEventListener('click', () => {
+        this.setPageScroll(!this.pageScrollEnabled, true);
+      });
+    }
 
     // Page Scroll Toggle Button
     if (this.togglePageScrollBtn) {
@@ -932,6 +1127,14 @@ class CasioWatchApp {
         } else {
           document.exitFullscreen().catch(() => {});
         }
+      } else if (e.key === 'a' || e.key === 'A') {
+        this.cycleAlignment();
+      } else if (e.key === 'l' || e.key === 'L') {
+        this.setAlignment('left');
+      } else if (e.key === 'r' || e.key === 'R') {
+        this.setAlignment('right');
+      } else if (e.key === 'c' || e.key === 'C') {
+        this.setAlignment('center');
       }
     });
 
@@ -942,6 +1145,8 @@ class CasioWatchApp {
         const outObj = {
           modelKey: this.activeModelKey,
           name: this.config.name,
+          align: this.currentAlign || 'center',
+          alignInset: this.currentAlignInset !== undefined ? this.currentAlignInset : 2.5,
           dialNativeW: this.config.dialNativeW,
           dialNativeH: this.config.dialNativeH,
           aspectRatio: this.config.aspectRatio,
@@ -988,10 +1193,34 @@ class CasioWatchApp {
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
         this.config = Object.assign({}, WATCH_MODELS[this.activeModelKey]);
+        const defModel = WATCH_MODELS[this.activeModelKey];
+        this.setAlignment(defModel.align || 'center');
+        this.setAlignInset(defModel.alignInset !== undefined ? defModel.alignInset : 2.5);
         this.syncSlidersFromConfig();
         this.applyConfig();
       });
     }
+
+    // Open All / Close All Calibration Accordions Button
+    const calibToggleAllBtn = document.getElementById('calib-toggle-all-btn');
+    const getCalibDetails = () => Array.from(document.querySelectorAll('#calibration-drawer details.control-group'));
+    const syncCalibToggleBtn = () => {
+      if (!calibToggleAllBtn) return;
+      const groups = getCalibDetails();
+      const allOpen = groups.length > 0 && groups.every(d => d.open);
+      calibToggleAllBtn.textContent = allOpen ? 'Close All' : 'Open All';
+      calibToggleAllBtn.setAttribute('aria-expanded', String(allOpen));
+    };
+    if (calibToggleAllBtn) {
+      calibToggleAllBtn.addEventListener('click', () => {
+        const groups = getCalibDetails();
+        const shouldOpen = !groups.every(d => d.open);
+        groups.forEach(d => { d.open = shouldOpen; });
+        syncCalibToggleBtn();
+      });
+    }
+    getCalibDetails().forEach(d => d.addEventListener('toggle', syncCalibToggleBtn));
+    syncCalibToggleBtn();
   }
 
   // --- Real-time Calibration Sliders ---
@@ -1052,6 +1281,18 @@ class CasioWatchApp {
         this.setMotionSpeed(parseFloat(e.target.value));
       });
     }
+
+    // Horizontal Alignment Edge Inset Margin Slider (0% - 25%)
+    const alignInsetSlider = document.getElementById('slider-align-inset');
+    const alignInsetLabel = document.getElementById('val-align-inset');
+    if (alignInsetSlider && alignInsetLabel) {
+      alignInsetSlider.value = this.currentAlignInset !== undefined ? this.currentAlignInset : 2.5;
+      alignInsetLabel.textContent = `${alignInsetSlider.value}%`;
+      alignInsetSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        this.setAlignInset(val, true);
+      });
+    }
   }
 
   syncSlidersFromConfig() {
@@ -1064,6 +1305,7 @@ class CasioWatchApp {
 
     updateInput('slider-screen-scale', 'val-screen-scale', Math.round((this.screenScale || 0.98) * 100), true, 0);
     updateInput('slider-motion-speed', 'val-motion-speed', this.motionSpeedFactor || 1.2, false, 1);
+    updateInput('slider-align-inset', 'val-align-inset', this.currentAlignInset !== undefined ? this.currentAlignInset : 2.5, true, 1);
     updateInput('slider-date-arc', 'val-date-arc', this.config.dateArcAngle !== undefined ? this.config.dateArcAngle : 8.5, false, 1);
     updateInput('slider-center-x', 'val-center-x', this.config.centerX, true, 2);
     updateInput('slider-center-y', 'val-center-y', this.config.centerY, true, 2);

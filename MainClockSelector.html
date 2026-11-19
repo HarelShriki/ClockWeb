@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClockWeb — Main Clock Selector & Launcher</title>
   <meta name="color-scheme" content="dark">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Local Offline Fonts (100% Standalone) -->
+  <link rel="stylesheet" href="assets/fonts/google-sans.css">
+  <link rel="stylesheet" href="assets/fonts/press-start-2p.css">
   <style>
     @layer base, theme, components, utilities;
 
@@ -26,9 +26,9 @@
         --accent-purple: #c084fc;
         --accent-gold: #fbbf24;
         --text-primary: #f1f5f9;
-        --text-secondary: #94a3b8;
-        --text-muted: #64748b;
-        --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --text-secondary: #a3b3c9;
+        --text-muted: #8b9bb4;
+        --font-sans: "Google Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
         --radius-lg: 16px;
         --radius-md: 10px;
@@ -613,7 +613,7 @@
         background: rgba(9, 13, 20, 0.78);
         backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -632,7 +632,7 @@
         backdrop-filter: blur(8px);
         border: 1px solid rgba(56, 222, 126, 0.6);
         color: var(--accent-green);
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.04em;
       }
@@ -644,7 +644,7 @@
         backdrop-filter: blur(8px);
         border: 1px solid rgba(0, 240, 255, 0.55);
         color: var(--accent-cyan);
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.04em;
       }
@@ -676,7 +676,7 @@
 
       .card-subbadge {
         font-family: var(--font-mono);
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         padding: 0.15rem 0.45rem;
         border-radius: 5px;
         background: rgba(255, 255, 255, 0.07);
@@ -805,12 +805,486 @@
         opacity: 1;
       }
 
+      /* Collapsible Setting-by-Setting Hub Accordions (Close Mode / Open Mode) */
+      .hub-accordions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1.15rem 1.5rem;
+      }
+
+      details.hub-accordion {
+        background: rgba(18, 24, 36, 0.85);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      details.hub-accordion[open] {
+        border-color: rgba(56, 222, 126, 0.5);
+        background: rgba(22, 30, 44, 0.95);
+      }
+
+      summary.hub-summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-height: 3.4rem;
+        padding: 0.85rem 1.15rem;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s ease;
+      }
+
+      summary.hub-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      summary.hub-summary:hover,
+      summary.hub-summary:focus-visible {
+        background: rgba(255, 255, 255, 0.06);
+        outline: none;
+      }
+
+      details.hub-accordion[open] > summary.hub-summary {
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(56, 222, 126, 0.09);
+      }
+
+      .hub-summary-left {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.65rem;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .hub-summary-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .hub-summary-preview {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--accent-green);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      .hub-summary-chevron {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--border-subtle);
+        color: var(--accent-green);
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+
+      details.hub-accordion[open] > summary.hub-summary .hub-summary-chevron {
+        transform: rotate(90deg);
+        background: rgba(56, 222, 126, 0.22);
+      }
+
+      .hub-accordion-body {
+        padding: 1rem 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+
+      .hub-setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        min-height: 48px;
+        padding: 0.65rem 0.85rem;
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius-md);
+      }
+
+      .hub-setting-label-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        flex: 1 1 200px;
+        min-width: 0;
+      }
+
+      .hub-setting-label {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .hub-setting-hint {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+      }
+
+      /* Collapsible Individual Clock Row inside #clocks-grid */
+      .clocks-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 0;
+      }
+
+      details.clock-accordion-item {
+        background: var(--bg-card);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      details.clock-accordion-item.is-selected {
+        border-color: var(--accent-cyan);
+      }
+
+      details.clock-accordion-item.is-saved-default {
+        border-color: var(--accent-green);
+      }
+
+      summary.clock-item-summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        min-height: 3.25rem;
+        padding: 0.65rem 0.95rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      summary.clock-item-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      summary.clock-item-summary:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      details.clock-accordion-item[open] > summary.clock-item-summary {
+        border-block-end: 1px solid var(--border-subtle);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .clock-item-summary-right {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        flex-shrink: 0;
+      }
+
+      .clock-item-body {
+        display: grid;
+        grid-template-columns: minmax(180px, 240px) 1fr;
+        gap: 1rem;
+        padding: 0.95rem;
+        align-items: center;
+      }
+
       @media (max-width: 680px) {
-        .selector-header, .selector-toolbar, .clocks-grid, .selector-footer {
-          padding-inline: 1rem;
+        .selector-backdrop {
+          padding: 0.5rem;
         }
-        .clocks-grid {
+        .selector-header, .hub-accordions-list, .selector-footer {
+          padding-inline: 0.85rem;
+        }
+        .selector-header {
+          position: static;
+        }
+        .selector-footer {
+          position: static;
+        }
+        .clock-item-body {
           grid-template-columns: 1fr;
+        }
+        .hub-setting-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .floating-switcher {
+          inset-inline: 0.5rem;
+          overflow-x: auto;
+          max-width: calc(100vw - 1rem);
+        }
+      }
+
+      /* ==========================================================================
+         Light Theme Overrides
+         ========================================================================== */
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg-deep: #f8fafc;
+        --bg-panel: rgba(255, 255, 255, 0.98);
+        --bg-card: #ffffff;
+        --bg-card-hover: #f1f5f9;
+        --bg-glass: rgba(255, 255, 255, 0.92);
+        --border-subtle: rgba(0, 0, 0, 0.12);
+        --border-hover: rgba(0, 0, 0, 0.28);
+        --accent-green: #15803d;
+        --accent-green-Soft: rgba(21, 128, 61, 0.14);
+        --accent-cyan: #0284c7;
+        --accent-purple: #7e22ce;
+        --accent-gold: #b45309;
+        --text-primary: #0f172a;
+        --text-secondary: #334155;
+        --text-muted: #475569;
+        --shadow-elevated: 0 16px 36px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
+      }
+
+      :root[data-theme="light"] .selector-backdrop {
+        background: radial-gradient(circle at 50% 0%, rgba(226, 232, 240, 0.96) 0%, rgba(241, 245, 249, 0.96) 80%);
+      }
+
+      :root[data-theme="light"] .selector-backdrop::-webkit-scrollbar-track {
+        background: rgba(241, 245, 249, 0.9);
+      }
+
+      :root[data-theme="light"] .selector-backdrop::-webkit-scrollbar-thumb {
+        background: rgba(21, 128, 61, 0.45);
+        border-color: rgba(241, 245, 249, 0.9);
+      }
+
+      :root[data-theme="light"] .selector-shell {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] .selector-header {
+        background: rgba(255, 255, 255, 0.96);
+        border-block-end-color: rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .selector-footer {
+        background: rgba(255, 255, 255, 0.96);
+        border-block-start-color: rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .live-mini-clock {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .close-selector-btn {
+        background: rgba(0, 0, 0, 0.06);
+        color: #0f172a;
+      }
+
+      :root[data-theme="light"] .close-selector-btn:hover {
+        background: rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] details.hub-accordion {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      }
+
+      :root[data-theme="light"] details.hub-accordion[open] {
+        border-color: rgba(21, 128, 61, 0.45);
+        background: #ffffff;
+      }
+
+      :root[data-theme="light"] summary.hub-summary:hover,
+      :root[data-theme="light"] summary.hub-summary:focus-visible {
+        background: rgba(0, 0, 0, 0.03);
+      }
+
+      :root[data-theme="light"] details.hub-accordion[open] > summary.hub-summary {
+        background: rgba(21, 128, 61, 0.08);
+        border-block-end-color: rgba(0, 0, 0, 0.08);
+      }
+
+      :root[data-theme="light"] .hub-summary-chevron {
+        background: rgba(0, 0, 0, 0.06);
+        color: #334155;
+      }
+
+      :root[data-theme="light"] details.hub-accordion[open] .hub-summary-chevron {
+        background: rgba(21, 128, 61, 0.18);
+        color: #15803d;
+      }
+
+      :root[data-theme="light"] .hub-setting-row {
+        border-block-end-color: rgba(0, 0, 0, 0.06);
+      }
+
+      :root[data-theme="light"] .hub-setting-row:hover {
+        background: rgba(0, 0, 0, 0.015);
+      }
+
+      :root[data-theme="light"] .saved-pill {
+        background: rgba(21, 128, 61, 0.12);
+        color: #15803d;
+        border-color: rgba(21, 128, 61, 0.3);
+      }
+
+      :root[data-theme="light"] .filter-tab {
+        background: rgba(0, 0, 0, 0.05);
+        color: #334155;
+        border-color: rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] .filter-tab:hover {
+        background: rgba(0, 0, 0, 0.09);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.22);
+      }
+
+      :root[data-theme="light"] .filter-tab.active {
+        background: #15803d;
+        color: #ffffff;
+        border-color: #15803d;
+      }
+
+      :root[data-theme="light"] .clock-card {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      }
+
+      :root[data-theme="light"] .clock-card:hover {
+        background: #ffffff;
+        border-color: #15803d;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .clock-card.is-selected {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.3), 0 12px 28px rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .clock-card.is-saved-default {
+        border-color: #15803d;
+      }
+
+      :root[data-theme="light"] .clock-preview-frame {
+        background: radial-gradient(circle at center, #f1f5f9 0%, #e2e8f0 100%);
+        border-block-end-color: rgba(0, 0, 0, 0.08);
+      }
+
+      :root[data-theme="light"] .badge {
+        background: rgba(0, 0, 0, 0.07);
+        color: #334155;
+        border-color: rgba(0, 0, 0, 0.1);
+      }
+
+      :root[data-theme="light"] .badge-current {
+        background: rgba(21, 128, 61, 0.14);
+        color: #15803d;
+        border-color: rgba(21, 128, 61, 0.3);
+      }
+
+      :root[data-theme="light"] .clock-card-footer {
+        background: rgba(248, 250, 252, 0.85);
+        border-block-start-color: rgba(0, 0, 0, 0.08);
+      }
+
+      :root[data-theme="light"] .btn {
+        background: #15803d;
+        color: #ffffff;
+      }
+
+      :root[data-theme="light"] .btn:hover {
+        background: #16a34a;
+      }
+
+      :root[data-theme="light"] .btn-secondary {
+        background: rgba(0, 0, 0, 0.06);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.14);
+      }
+
+      :root[data-theme="light"] .btn-secondary:hover {
+        background: rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] .hud-select {
+        background: #ffffff;
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.18);
+      }
+
+      :root[data-theme="light"] .hud-select option {
+        background: #ffffff;
+        color: #0f172a;
+      }
+
+      :root[data-theme="light"] .floating-switcher,
+      :root[data-theme="light"] .page-roll-controls {
+        background: rgba(255, 255, 255, 0.94);
+        color: #0f172a;
+        border-color: rgba(0, 0, 0, 0.14);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] .roll-fab {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(21, 128, 61, 0.4);
+        color: #15803d;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      }
+
+      :root[data-theme="light"] .roll-fab:hover {
+        background: rgba(21, 128, 61, 0.15);
+        color: #15803d;
+      }
+
+      :root[data-theme="light"] .hud-btn {
+        color: #0f172a;
+      }
+
+      :root[data-theme="light"] .hud-btn:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: #0f172a;
+      }
+
+      :root[data-theme="light"] .hud-btn.is-saved {
+        background: rgba(21, 128, 61, 0.14);
+        color: #15803d;
+      }
+
+      :root[data-theme="light"] .toast-banner {
+        background: rgba(255, 255, 255, 0.96);
+        color: #0f172a;
+        border-color: rgba(21, 128, 61, 0.45);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+        .selector-backdrop, .selector-header, .selector-footer, .floating-switcher, .roll-fab {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          background: #0d121b !important;
         }
       }
     }
@@ -897,6 +1371,13 @@
             <span class="live-mini-time" id="header-live-time">--:--:--</span>
             <span class="live-mini-date" id="header-live-date">---</span>
           </div>
+          <button type="button" class="close-selector-btn" id="theme-toggle-btn" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
+            <span id="theme-toggle-icon" aria-hidden="true">🌙</span>
+            <span id="theme-toggle-text">Dark Theme</span>
+          </button>
+          <button type="button" class="close-selector-btn" id="hub-toggle-all-btn" aria-expanded="false">
+            <span id="hub-toggle-all-text">Open All Settings</span>
+          </button>
           <button type="button" class="close-selector-btn" id="close-selector-btn" title="Return to running clock (Esc)">
             <span>Resume Clock</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -906,49 +1387,153 @@
         </div>
       </header>
 
-      <!-- Filter Tabs & Saved Startup Status -->
-      <div class="selector-toolbar">
-        <div class="filter-tabs" role="tablist" aria-label="Filter Clocks">
-          <button type="button" class="filter-tab active" data-filter="all">All Clocks (7)</button>
-          <button type="button" class="filter-tab" data-filter="casio">Casio G-Shock Analog (3)</button>
-          <button type="button" class="filter-tab" data-filter="digital">Digital & Presets (4)</button>
-        </div>
+      <!-- Collapsible Setting-by-Setting Accordions (Close Mode / Open Mode) -->
+      <div class="hub-accordions-list" id="hub-accordions-list">
+        <!-- Default Clock & Startup Behavior -->
+        <details class="hub-accordion" id="hub-acc-1">
+          <summary class="hub-summary">
+            <div class="hub-summary-left">
+              <span class="hub-summary-title">Default Clock &amp; Startup Behavior</span>
+              <span class="hub-summary-preview" id="hub-sum-1">(Saved: Casio Vector BW · Auto-run ON)</span>
+            </div>
+            <span class="hub-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="hub-accordion-body">
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Saved Startup Clock</span>
+                <span class="hub-setting-hint">Stored in browser localStorage and launched automatically on startup</span>
+              </div>
+              <div class="saved-pill" title="This clock is saved in localStorage and runs automatically">
+                <span class="dot"></span>
+                <span>Saved Default: <strong id="saved-clock-label">None</strong></span>
+              </div>
+            </div>
 
-        <div class="saved-status-group">
-          <div class="saved-pill" title="This clock is saved in localStorage and runs automatically">
-            <span class="dot"></span>
-            <span>Saved Default: <strong id="saved-clock-label">None</strong></span>
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Auto-Run Saved Clock on Startup</span>
+                <span class="hub-setting-hint">Immediately launch your saved default clock when opening MainClockSelector.html</span>
+              </div>
+              <label class="auto-launch-label">
+                <input type="checkbox" id="auto-launch-checkbox" checked>
+                <span>Auto-run saved on startup</span>
+              </label>
+            </div>
           </div>
+        </details>
 
-          <label class="auto-launch-label" title="Unlock vertical/horizontal scrolling so you can roll up and down the page">
-            <input type="checkbox" id="allow-scroll-checkbox">
-            <span>↕ Allow Page Scroll</span>
-          </label>
+        <!-- Screen Rotation, Page Scroll & Auto-Roll -->
+        <details class="hub-accordion" id="hub-acc-2">
+          <summary class="hub-summary">
+            <div class="hub-summary-left">
+              <span class="hub-summary-title">Screen Rotation, Scroll &amp; Auto-Roll</span>
+              <span class="hub-summary-preview" id="hub-sum-2">(Dark Theme · Rotate 0° · Scroll OFF · Auto-Roll Off)</span>
+            </div>
+            <span class="hub-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="hub-accordion-body">
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Interface Theme</span>
+                <span class="hub-setting-hint">Switch interface between Dark Mode and Light Mode</span>
+              </div>
+              <div class="filter-tabs" role="group" aria-label="Theme Selection" style="margin: 0;">
+                <button type="button" class="filter-tab active" id="theme-dark-btn" title="Enable Dark Theme">🌙 Dark</button>
+                <button type="button" class="filter-tab" id="theme-light-btn" title="Enable Light Theme">☀️ Light</button>
+              </div>
+            </div>
 
-          <label class="auto-launch-label" title="Automatically roll/cycle through clocks on a timer">
-            <span>⟳ Auto-Roll:</span>
-            <select id="auto-roll-select" class="hud-select" style="padding: 0.22rem 1.5rem 0.22rem 0.55rem; font-size: 0.76rem;">
-              <option value="0">Off</option>
-              <option value="15">Every 15s</option>
-              <option value="30">Every 30s</option>
-              <option value="60">Every 1m</option>
-              <option value="300">Every 5m</option>
-            </select>
-          </label>
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Screen Orientation / Rotation</span>
+                <span class="hub-setting-hint">Rotate the running clock display (0° / 90° / 180° / 270°)</span>
+              </div>
+              <button type="button" class="filter-tab" id="toolbar-rotate-btn" title="Rotate / Roll Screen Orientation (0° / 90° / 180° / 270°)">
+                ↻ Rotate: <span id="toolbar-rotate-val">0°</span>
+              </button>
+            </div>
 
-          <button type="button" class="filter-tab" id="toolbar-rotate-btn" title="Rotate / Roll Screen Orientation (0° / 90° / 180° / 270°)">
-            ↻ Rotate: <span id="toolbar-rotate-val">0°</span>
-          </button>
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Page Scroll (Roll Up / Down)</span>
+                <span class="hub-setting-hint">Unlock vertical/horizontal scrolling on the active clock view</span>
+              </div>
+              <label class="auto-launch-label">
+                <input type="checkbox" id="allow-scroll-checkbox">
+                <span>↕ Allow Page Scroll</span>
+              </label>
+            </div>
 
-          <label class="auto-launch-label" title="When enabled, opening MainClockSelector.html immediately runs your saved default clock">
-            <input type="checkbox" id="auto-launch-checkbox" checked>
-            <span>Auto-run saved on startup</span>
-          </label>
-        </div>
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Auto-Roll Clocks Timer</span>
+                <span class="hub-setting-hint">Automatically cycle through all 6 clock faces on a timer</span>
+              </div>
+              <select id="auto-roll-select" class="hud-select">
+                <option value="0">Off</option>
+                <option value="15">Every 15s</option>
+                <option value="30">Every 30s</option>
+                <option value="60">Every 1m</option>
+                <option value="300">Every 5m</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <!-- Clock Faces & Presets (Collapsible Clock-by-Clock List) -->
+        <details class="hub-accordion" id="hub-acc-3">
+          <summary class="hub-summary">
+            <div class="hub-summary-left">
+              <span class="hub-summary-title">Clock Faces &amp; Presets (6 Clocks)</span>
+              <span class="hub-summary-preview" id="hub-sum-3">(Tap any clock below to open or run)</span>
+            </div>
+            <span class="hub-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="hub-accordion-body">
+            <div class="filter-tabs" role="tablist" aria-label="Filter Clocks">
+              <button type="button" class="filter-tab active" data-filter="all">All Clocks (6)</button>
+              <button type="button" class="filter-tab" data-filter="casio">Casio G-Shock Analog (2)</button>
+              <button type="button" class="filter-tab" data-filter="digital">Digital &amp; Presets (4)</button>
+            </div>
+
+            <!-- Collapsible Clock Items List -->
+            <div class="clocks-grid" id="clocks-grid"></div>
+          </div>
+        </details>
+
+        <!-- Clock Face Customizers & Editors -->
+        <details class="hub-accordion" id="hub-acc-4">
+          <summary class="hub-summary">
+            <div class="hub-summary-left">
+              <span class="hub-summary-title">Clock Settings &amp; Direct Editors</span>
+              <span class="hub-summary-preview" id="hub-sum-4">(Digital Clock Settings · Casio Calibration)</span>
+            </div>
+            <span class="hub-summary-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="hub-accordion-body">
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Digital Clock Settings</span>
+                <span class="hub-setting-hint">Customize Hebrew &amp; Gregorian dates, Parashah, Shabbat times, fonts &amp; colors</span>
+              </div>
+              <a href="digital/settings.html" target="_blank" class="btn btn-lg" title="Open Digital Clock Settings Editor">
+                <span>Open Digital Settings ↗</span>
+              </a>
+            </div>
+
+            <div class="hub-setting-row">
+              <div class="hub-setting-label-group">
+                <span class="hub-setting-label">Casio G-Shock Watch Calibration</span>
+                <span class="hub-setting-hint">Open Casio Analog Watch directly with Center Circles Calibration drawer</span>
+              </div>
+              <a href="CASIO/index.html" target="_blank" class="btn btn-lg" title="Open Casio Watch">
+                <span>Open Casio Watch ↗</span>
+              </a>
+            </div>
+          </div>
+        </details>
       </div>
-
-      <!-- Cards Grid -->
-      <div class="clocks-grid" id="clocks-grid"></div>
 
       <!-- Bottom Action Footer -->
       <footer class="selector-footer">
@@ -998,6 +1583,7 @@
         ALLOW_SCROLL: "clockweb_allow_scroll_v1",
         AUTO_ROLL_SEC: "clockweb_auto_roll_sec_v1",
         SCREEN_ROTATION: "clockweb_screen_rotation_v1",
+        THEME: "clockweb_theme_v1",
         CASIO_MODEL: "casioActiveModelKey",
         DIGITAL_CONFIG: "webclockMinimalConfig",
         DIGITAL_SAVED_DESIGNS: "webclockSavedDesigns"
@@ -1149,18 +1735,6 @@
 
       const CLOCK_REGISTRY = [
         {
-          id: "casio-gac-2500-3a",
-          name: "Casio G-Shock GAC-2500-3A (Green Resin)",
-          shortName: "Casio Green Resin",
-          category: "casio",
-          categoryLabel: "Casio Analog",
-          badge: "Green Resin",
-          description: "Authentic dark green resin octagonal case with 3-day circular date wheel, 9h seconds subdial & tactical green particle web.",
-          url: "CASIO/index.html?model=CASIO-GAC-2500-3A",
-          casioModel: "CASIO-GAC-2500-3A",
-          previewImg: "CASIO/Watch/CASIO-GAC-2500-3A/png/clock clean.png"
-        },
-        {
           id: "casio-vector-bw-strap",
           name: "Casio G-Shock Vector BW (With Strap)",
           shortName: "Casio Vector BW (Strap)",
@@ -1271,6 +1845,7 @@
       let autoRollSeconds = 0;
       let autoRollTimer = null;
       let screenRotation = 0; // 0, 90, 180, 270
+      let currentTheme = "dark"; // 'dark' or 'light'
       let idleTimer = null;
       let toastTimer = null;
 
@@ -1278,11 +1853,63 @@
         return CLOCK_REGISTRY.find((c) => c.id === id) || null;
       }
 
+      function applyTheme(theme, save = true) {
+        currentTheme = (theme === "light") ? "light" : "dark";
+        if (currentTheme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.body.classList.add("light-theme");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+          document.body.classList.remove("light-theme");
+        }
+        if (save) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.THEME, currentTheme);
+          } catch (e) {}
+        }
+        updateThemeUI();
+        if (clockIframe && clockIframe.contentWindow) {
+          try {
+            clockIframe.contentWindow.postMessage(
+              { type: "CLOCKWEB_SET_THEME", theme: currentTheme },
+              "*"
+            );
+          } catch (e) {}
+        }
+      }
+
+      function toggleTheme() {
+        applyTheme(currentTheme === "dark" ? "light" : "dark", true);
+        showToast(currentTheme === "light" ? "☀️ Light Theme Enabled" : "🌙 Dark Theme Enabled");
+      }
+
+      function updateThemeUI() {
+        const isLight = currentTheme === "light";
+        const themeBtnText = document.getElementById("theme-toggle-text");
+        const themeBtnIcon = document.getElementById("theme-toggle-icon");
+        if (themeBtnText) {
+          themeBtnText.textContent = isLight ? "Light Theme" : "Dark Theme";
+        }
+        if (themeBtnIcon) {
+          themeBtnIcon.textContent = isLight ? "☀️" : "🌙";
+        }
+
+        const darkBtn = document.getElementById("theme-dark-btn");
+        const lightBtn = document.getElementById("theme-light-btn");
+        if (darkBtn) darkBtn.classList.toggle("active", !isLight);
+        if (lightBtn) lightBtn.classList.toggle("active", isLight);
+
+        updateHubSummaries();
+      }
+
       function loadSavedPreferences() {
         ensureSavedDigitalDesigns();
         try {
           const rawSaved = localStorage.getItem(STORAGE_KEYS.SAVED_CLOCK_ID);
-          if (rawSaved && getClockById(rawSaved)) {
+          if (rawSaved === "casio-gac-2500-3a") {
+            savedClockId = "casio-vector-bw-strap";
+            try { localStorage.setItem(STORAGE_KEYS.SAVED_CLOCK_ID, "casio-vector-bw-strap"); } catch (e) {}
+          } else if (rawSaved && getClockById(rawSaved)) {
             savedClockId = rawSaved;
           }
           const rawAuto = localStorage.getItem(STORAGE_KEYS.AUTO_LAUNCH);
@@ -1301,6 +1928,9 @@
           if ([0, 90, 180, 270].includes(rawRot)) {
             screenRotation = rawRot;
           }
+
+          const rawTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+          applyTheme(rawTheme || "dark", false);
         } catch (e) {
           autoLaunchCheckbox.checked = true;
         }
@@ -1325,6 +1955,7 @@
             );
           } catch (e) {}
         }
+        updateHubSummaries();
         if (notify) {
           showToast(allowPageScroll ? "Page Scroll enabled (roll up/down)" : "Page Scroll locked to full-screen");
         }
@@ -1342,6 +1973,7 @@
         try {
           localStorage.setItem(STORAGE_KEYS.SCREEN_ROTATION, String(screenRotation));
         } catch (e) {}
+        updateHubSummaries();
         if (notify) {
           showToast(`Rotated screen to ${screenRotation}° (saved)`);
         }
@@ -1364,6 +1996,7 @@
         try {
           localStorage.setItem(STORAGE_KEYS.AUTO_ROLL_SEC, String(autoRollSeconds));
         } catch (e) {}
+        updateHubSummaries();
         if (autoRollSeconds > 0) {
           autoRollTimer = setInterval(() => {
             rollRelativeClock(1);
@@ -1446,12 +2079,18 @@
           clockIframe.contentWindow
         ) {
           try {
+            const savedAlign = localStorage.getItem("casio_align_" + clockItem.casioModel) || "center";
             clockIframe.contentWindow.postMessage(
               { type: "CLOCKWEB_SET_CASIO_MODEL", model: clockItem.casioModel },
               "*"
             );
+            clockIframe.contentWindow.postMessage(
+              { type: "CLOCKWEB_SET_ALIGN", align: savedAlign },
+              "*"
+            );
           } catch (e) {
-            clockIframe.src = clockItem.url;
+            const savedAlign = localStorage.getItem("casio_align_" + clockItem.casioModel) || "center";
+            clockIframe.src = `CASIO/index.html?model=${clockItem.casioModel}&align=${savedAlign}`;
           }
         } else if (
           clockItem.category === "digital" &&
@@ -1471,7 +2110,12 @@
             clockIframe.src = clockItem.url;
           }
         } else {
-          clockIframe.src = clockItem.url;
+          let targetUrl = clockItem.url;
+          if (clockItem.casioModel) {
+            const savedAlign = localStorage.getItem("casio_align_" + clockItem.casioModel) || "center";
+            targetUrl = `CASIO/index.html?model=${clockItem.casioModel}&align=${savedAlign}`;
+          }
+          clockIframe.src = targetUrl;
         }
 
         if (closeSelector) {
@@ -1506,7 +2150,9 @@
         }
       }
 
-      // Render Cards Grid
+      const openClockItemIds = new Set();
+
+      // Render Collapsible Clock Items inside Setting 3
       function renderCards() {
         clocksGrid.innerHTML = "";
         const now = new Date();
@@ -1523,18 +2169,21 @@
           (c) => activeFilter === "all" || c.category === activeFilter
         );
 
-        for (const item of visibleClocks) {
+        visibleClocks.forEach((item, idx) => {
           const isSelected = item.id === selectedClockId;
           const isSaved = item.id === savedClockId;
           const isRunning = item.id === runningClockId;
 
-          const card = document.createElement("article");
-          card.className = [
-            "clock-card",
+          const detailsEl = document.createElement("details");
+          detailsEl.className = [
+            "clock-accordion-item",
             isSelected ? "is-selected" : "",
             isSaved ? "is-saved-default" : ""
           ].filter(Boolean).join(" ");
-          card.dataset.clockId = item.id;
+          detailsEl.dataset.clockId = item.id;
+          if (openClockItemIds.has(item.id)) {
+            detailsEl.open = true;
+          }
 
           let previewInner = "";
           if (item.category === "casio") {
@@ -1549,42 +2198,126 @@
             `;
           }
 
-          card.innerHTML = `
-            <div class="card-preview">
-              <div class="card-badges">
-                <span class="category-tag">${item.categoryLabel}</span>
-                <div class="status-badges">
-                  ${isRunning ? '<span class="running-badge">● RUNNING</span>' : ""}
-                  ${isSaved ? '<span class="saved-badge">★ SAVED DEFAULT</span>' : ""}
-                </div>
+          const summaryParts = [item.badge];
+          if (isRunning) summaryParts.push("● Running");
+          if (isSaved) summaryParts.push("★ Saved Default");
+
+          detailsEl.innerHTML = `
+            <summary class="clock-item-summary">
+              <div class="hub-summary-left">
+                <span class="hub-summary-title">${idx + 1}. ${item.shortName}</span>
+                <span class="hub-summary-preview">(${summaryParts.join(" · ")})</span>
               </div>
-              ${previewInner}
-            </div>
-            <div class="card-body">
-              <div>
-                <div class="card-title-row">
-                  <h2 class="card-title">${item.name}</h2>
-                  <span class="card-subbadge">${item.badge}</span>
-                </div>
-                <p class="card-desc">${item.description}</p>
-              </div>
-              <div class="card-actions">
-                <button type="button" class="btn primary" data-action="save-run" data-id="${item.id}">
-                  <span>${isSaved ? "✓ Saved · Run" : "★ Save & Run"}</span>
-                </button>
-                <button type="button" class="btn" data-action="run" data-id="${item.id}" title="Run without changing saved default">
+              <div class="clock-item-summary-right">
+                <button type="button" class="btn" data-action="run" data-id="${item.id}" title="Run this clock now">
                   <span>▶ Run</span>
                 </button>
-                <button type="button" class="btn" data-action="save" data-id="${item.id}" title="Save as default clock">
-                  <span>${isSaved ? "★" : "☆"}</span>
-                </button>
+                <span class="hub-summary-chevron" aria-hidden="true">▸</span>
+              </div>
+            </summary>
+            <div class="clock-item-body">
+              <div class="card-preview" style="border-radius: 10px; border: 1px solid var(--border-subtle);">
+                <div class="card-badges">
+                  <span class="category-tag">${item.categoryLabel}</span>
+                  <div class="status-badges">
+                    ${isRunning ? '<span class="running-badge">● RUNNING</span>' : ""}
+                    ${isSaved ? '<span class="saved-badge">★ SAVED</span>' : ""}
+                  </div>
+                </div>
+                ${previewInner}
+              </div>
+              <div class="card-body" style="padding: 0;">
+                <div>
+                  <div class="card-title-row">
+                    <h2 class="card-title">${item.name}</h2>
+                    <span class="card-subbadge">${item.badge}</span>
+                  </div>
+                  <p class="card-desc">${item.description}</p>
+                </div>
+                ${item.category === "casio" ? `
+                  <div class="casio-align-selector-row" style="margin: 0.65rem 0 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.45rem 0.65rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Position (Align &amp; Scroll):</span>
+                    <div class="casio-align-btns" style="display: flex; gap: 0.35rem;" data-casio-model="${item.casioModel}">
+                      <button type="button" class="btn casio-align-btn ${ (localStorage.getItem('casio_align_' + item.casioModel) || 'center') === 'left' ? 'primary' : '' }" data-align="left" data-model="${item.casioModel}" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" title="Align clock to Left">◀ Left</button>
+                      <button type="button" class="btn casio-align-btn ${ (localStorage.getItem('casio_align_' + item.casioModel) || 'center') === 'center' ? 'primary' : '' }" data-align="center" data-model="${item.casioModel}" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" title="Align clock to Center">■ Center</button>
+                      <button type="button" class="btn casio-align-btn ${ (localStorage.getItem('casio_align_' + item.casioModel) || 'center') === 'right' ? 'primary' : '' }" data-align="right" data-model="${item.casioModel}" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" title="Align clock to Right">Right ▶</button>
+                      <button type="button" class="btn casio-scroll-btn ${ allowPageScroll ? 'primary' : '' }" style="padding: 0.25rem 0.55rem; font-size: 0.75rem;" title="Toggle page scroll (roll up/down)">↕ Scroll: ${ allowPageScroll ? 'ON' : 'OFF' }</button>
+                    </div>
+                  </div>
+                ` : ""}
+                <div class="card-actions">
+                  <button type="button" class="btn primary" data-action="save-run" data-id="${item.id}">
+                    <span>${isSaved ? "✓ Saved · Run" : "★ Save & Run"}</span>
+                  </button>
+                  <button type="button" class="btn" data-action="run" data-id="${item.id}" title="Run without changing saved default">
+                    <span>▶ Run</span>
+                  </button>
+                  <button type="button" class="btn" data-action="save" data-id="${item.id}" title="Save as default clock">
+                    <span>${isSaved ? "★ Saved" : "☆ Save"}</span>
+                  </button>
+                </div>
               </div>
             </div>
           `;
 
-          card.addEventListener("click", (e) => {
+          detailsEl.addEventListener("toggle", () => {
+            if (detailsEl.open) {
+              openClockItemIds.add(item.id);
+              selectedClockId = item.id;
+              const selectedObj = getClockById(selectedClockId);
+              if (selectedClockLabel) {
+                selectedClockLabel.textContent = selectedObj ? selectedObj.name : "None";
+              }
+            } else {
+              openClockItemIds.delete(item.id);
+            }
+          });
+
+          detailsEl.addEventListener("click", (e) => {
+            const scrollBtn = e.target.closest(".casio-scroll-btn");
+            if (scrollBtn) {
+              e.preventDefault();
+              e.stopPropagation();
+              applyPageScrollState(!allowPageScroll, true);
+              document.querySelectorAll(".casio-scroll-btn").forEach((b) => {
+                b.classList.toggle("primary", allowPageScroll);
+                b.textContent = `↕ Scroll: ${allowPageScroll ? "ON" : "OFF"}`;
+              });
+              return;
+            }
+
+            const alignBtn = e.target.closest(".casio-align-btn");
+            if (alignBtn) {
+              e.preventDefault();
+              e.stopPropagation();
+              const chosenAlign = alignBtn.dataset.align;
+              const model = alignBtn.dataset.model;
+              try {
+                localStorage.setItem("casio_align_" + model, chosenAlign);
+              } catch (err) {}
+
+              // Update UI buttons inside this group
+              const btnGroup = alignBtn.closest(".casio-align-btns");
+              if (btnGroup) {
+                btnGroup.querySelectorAll(".casio-align-btn").forEach((b) => {
+                  b.classList.toggle("primary", b.dataset.align === chosenAlign);
+                });
+              }
+
+              // If running clock is this casio model, post message
+              const runningClock = getClockById(runningClockId);
+              if (runningClock && runningClock.casioModel === model && clockIframe.contentWindow) {
+                try {
+                  clockIframe.contentWindow.postMessage({ type: "CLOCKWEB_SET_ALIGN", align: chosenAlign }, "*");
+                } catch (err) {}
+              }
+              showToast(`Clock aligned to ${chosenAlign.toUpperCase()}`);
+              return;
+            }
+
             const actionBtn = e.target.closest("button[data-action]");
             if (actionBtn) {
+              e.preventDefault();
               e.stopPropagation();
               const act = actionBtn.dataset.action;
               const targetId = actionBtn.dataset.id;
@@ -1597,18 +2330,36 @@
               } else if (act === "save") {
                 saveClockAsDefault(targetId, true);
               }
-              return;
             }
-            selectedClockId = item.id;
-            updateUIState();
           });
 
-          card.addEventListener("dblclick", () => {
-            saveClockAsDefault(item.id, true);
-            runClock(item.id, true);
-          });
+          clocksGrid.appendChild(detailsEl);
+        });
+      }
 
-          clocksGrid.appendChild(card);
+      function updateHubSummaries() {
+        const savedObj = getClockById(savedClockId);
+        const savedName = savedObj ? savedObj.shortName : "None";
+        const autoOn = autoLaunchCheckbox && autoLaunchCheckbox.checked ? "Auto-run ON" : "Auto-run OFF";
+        const sum1 = document.getElementById("hub-sum-1");
+        if (sum1) {
+          sum1.textContent = `(Saved: ${savedName} · ${autoOn})`;
+        }
+
+        const sum2 = document.getElementById("hub-sum-2");
+        if (sum2) {
+          const scrollStr = allowPageScroll ? "Scroll ON" : "Scroll OFF";
+          const rollStr = autoRollSeconds > 0 ? `Auto-Roll ${autoRollSeconds}s` : "Auto-Roll Off";
+          const themeStr = currentTheme === "light" ? "☀️ Light" : "🌙 Dark";
+          sum2.textContent = `(${themeStr} · Rotate ${screenRotation}° · ${scrollStr} · ${rollStr})`;
+        }
+
+        const runningObj = getClockById(runningClockId);
+        const sum3 = document.getElementById("hub-sum-3");
+        if (sum3) {
+          sum3.textContent = runningObj
+            ? `(${CLOCK_REGISTRY.length} Clocks · Running: ${runningObj.shortName})`
+            : `(${CLOCK_REGISTRY.length} Clocks · Tap any clock to open)`;
         }
       }
 
@@ -1627,6 +2378,7 @@
         quickSaveBtn.classList.toggle("is-saved", Boolean(isCurrentSaved));
         quickSaveText.textContent = isCurrentSaved ? "✓ Saved Default" : "★ Save Default";
 
+        updateHubSummaries();
         renderCards();
       }
 
@@ -1671,10 +2423,64 @@
 
       // Event Listeners
       function bindEvents() {
-        // Filter Tabs
-        document.querySelectorAll(".filter-tab").forEach((tab) => {
+        // Open All / Close All Hub Accordions
+        const hubToggleAllBtn = document.getElementById("hub-toggle-all-btn");
+        const hubToggleAllText = document.getElementById("hub-toggle-all-text");
+        const getHubAccordions = () => Array.from(document.querySelectorAll("details.hub-accordion"));
+        const syncHubToggleBtn = () => {
+          const allOpen = getHubAccordions().every((d) => d.open);
+          if (hubToggleAllText) {
+            hubToggleAllText.textContent = allOpen ? "Close All Settings" : "Open All Settings";
+          }
+          if (hubToggleAllBtn) {
+            hubToggleAllBtn.setAttribute("aria-expanded", String(allOpen));
+          }
+        };
+        if (hubToggleAllBtn) {
+          hubToggleAllBtn.addEventListener("click", () => {
+            const accordions = getHubAccordions();
+            const shouldOpen = !accordions.every((d) => d.open);
+            accordions.forEach((d) => {
+              d.open = shouldOpen;
+            });
+            document.querySelectorAll("details.clock-accordion-item").forEach((d) => {
+              d.open = shouldOpen;
+              const cid = d.dataset.clockId;
+              if (cid) {
+                if (shouldOpen) openClockItemIds.add(cid);
+                else openClockItemIds.delete(cid);
+              }
+            });
+            syncHubToggleBtn();
+          });
+        }
+        getHubAccordions().forEach((d) => d.addEventListener("toggle", syncHubToggleBtn));
+        syncHubToggleBtn();
+
+        // Theme Toggle Buttons (Header + Setting 2)
+        const themeToggleBtn = document.getElementById("theme-toggle-btn");
+        if (themeToggleBtn) {
+          themeToggleBtn.addEventListener("click", toggleTheme);
+        }
+        const themeDarkBtn = document.getElementById("theme-dark-btn");
+        if (themeDarkBtn) {
+          themeDarkBtn.addEventListener("click", () => {
+            applyTheme("dark", true);
+            showToast("🌙 Dark Theme Enabled");
+          });
+        }
+        const themeLightBtn = document.getElementById("theme-light-btn");
+        if (themeLightBtn) {
+          themeLightBtn.addEventListener("click", () => {
+            applyTheme("light", true);
+            showToast("☀️ Light Theme Enabled");
+          });
+        }
+
+        // Category Filter Tabs
+        document.querySelectorAll(".filter-tabs[role='tablist'] .filter-tab").forEach((tab) => {
           tab.addEventListener("click", () => {
-            document.querySelectorAll(".filter-tab").forEach((t) => t.classList.remove("active"));
+            document.querySelectorAll(".filter-tabs[role='tablist'] .filter-tab").forEach((t) => t.classList.remove("active"));
             tab.classList.add("active");
             activeFilter = tab.dataset.filter || "all";
             renderCards();
@@ -1686,6 +2492,7 @@
           try {
             localStorage.setItem(STORAGE_KEYS.AUTO_LAUNCH, String(autoLaunchCheckbox.checked));
           } catch (e) {}
+          updateHubSummaries();
           showToast(
             autoLaunchCheckbox.checked
               ? "Auto-run saved clock on startup: ON"
@@ -1724,12 +2531,16 @@
           scrollActiveViewBy(320);
         });
 
-        // Sync Page Scroll state whenever iframe finishes loading
+        // Sync Page Scroll & Theme state whenever iframe finishes loading
         clockIframe.addEventListener("load", () => {
           if (clockIframe.contentWindow) {
             try {
               clockIframe.contentWindow.postMessage(
                 { type: "CLOCKWEB_SET_PAGE_SCROLL", enabled: allowPageScroll },
+                "*"
+              );
+              clockIframe.contentWindow.postMessage(
+                { type: "CLOCKWEB_SET_THEME", theme: currentTheme },
                 "*"
               );
             } catch (e) {}
@@ -1817,8 +2628,20 @@
               selectedClockId = matched.id;
               updateUIState();
             }
+          } else if (e.data.type === "CLOCKWEB_CASIO_ALIGN_CHANGED" && e.data.model) {
+            try {
+              localStorage.setItem("casio_align_" + e.data.model, e.data.align);
+              const btns = document.querySelectorAll(`.casio-align-btns[data-casio-model="${e.data.model}"] .casio-align-btn`);
+              btns.forEach((b) => {
+                b.classList.toggle("primary", b.dataset.align === e.data.align);
+              });
+            } catch (err) {}
           } else if (e.data.type === "CLOCKWEB_PAGE_SCROLL_CHANGED") {
             applyPageScrollState(Boolean(e.data.enabled), false);
+            document.querySelectorAll(".casio-scroll-btn").forEach((b) => {
+              b.classList.toggle("primary", allowPageScroll);
+              b.textContent = `↕ Scroll: ${allowPageScroll ? "ON" : "OFF"}`;
+            });
           }
         });
       }
